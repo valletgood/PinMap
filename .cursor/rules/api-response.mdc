@@ -1,0 +1,100 @@
+---
+description: API 응답 형식 표준 규칙
+globs: ["src/app/api/**/*.ts", "src/app/api/**/*.tsx"]
+alwaysApply: true
+---
+
+# API 응답 형식 규칙
+
+## 필수 응답 형식
+
+모든 API Route는 다음 형식으로 응답해야 합니다:
+
+```typescript
+{
+  error: number,    // 0이면 정상, 그 외는 에러 코드
+  message: string, // 응답 메시지
+  data?: T         // 선택적 데이터 (성공 시에만 포함)
+}
+```
+
+## 응답 생성 방법
+
+### 성공 응답
+
+항상 `successResponse()` 함수를 사용하여 성공 응답을 생성합니다:
+
+```typescript
+import { successResponse, ErrorCode } from "@/lib/api-response";
+
+// 데이터 없이 성공 응답
+return successResponse("작업이 완료되었습니다.");
+
+// 데이터와 함께 성공 응답
+return successResponse("사용 가능한 이메일입니다.", { available: true });
+```
+
+### 에러 응답
+
+항상 `errorResponse()` 함수를 사용하여 에러 응답을 생성합니다:
+
+```typescript
+import { errorResponse, ErrorCode } from "@/lib/api-response";
+
+// 잘못된 요청
+return errorResponse(ErrorCode.BAD_REQUEST, "이메일 주소가 필요합니다.");
+
+// 서버 오류
+return errorResponse(ErrorCode.INTERNAL_SERVER_ERROR, "처리 중 오류가 발생했습니다.");
+```
+
+## 에러 코드 사용
+
+다음 에러 코드 상수를 사용합니다:
+
+- `ErrorCode.SUCCESS (0)` - 정상 케이스
+- `ErrorCode.BAD_REQUEST (400)` - 잘못된 요청
+- `ErrorCode.UNAUTHORIZED (401)` - 인증 필요
+- `ErrorCode.FORBIDDEN (403)` - 권한 없음
+- `ErrorCode.NOT_FOUND (404)` - 리소스 없음
+- `ErrorCode.CONFLICT (409)` - 충돌 (예: 중복)
+- `ErrorCode.INTERNAL_SERVER_ERROR (500)` - 서버 오류
+
+## 금지 사항
+
+다음은 절대 사용하지 않습니다:
+
+- ❌ `NextResponse.json()` 직접 사용 (헬퍼 함수 사용 필수)
+- ❌ `error` 필드에 문자열 사용 (항상 number)
+- ❌ `error: 0`이 아닌 다른 값으로 성공 표시
+- ❌ `data` 필드에 에러 정보 포함 (에러는 `error`와 `message`로만 전달)
+- ❌ HTTP 상태 코드만으로 에러 구분 (항상 `error` 필드 포함)
+
+## 예시
+
+### 올바른 사용
+
+```typescript
+// 성공 케이스
+return successResponse("조회 성공", { users: [...] });
+
+// 에러 케이스
+return errorResponse(ErrorCode.BAD_REQUEST, "유효하지 않은 입력입니다.");
+```
+
+### 잘못된 사용
+
+```typescript
+// ❌ 직접 NextResponse.json 사용
+return NextResponse.json({ available: true }, { status: 200 });
+
+// ❌ error 필드에 문자열 사용
+return NextResponse.json({ error: "에러 발생" }, { status: 400 });
+
+// ❌ error 필드 없이 응답
+return NextResponse.json({ message: "성공" }, { status: 200 });
+```
+
+## 참고 파일
+
+- [api-response.ts](mdc:src/lib/api-response.ts) - 응답 유틸리티 함수 및 타입 정의
