@@ -1,0 +1,21 @@
+---
+description: React 컴포넌트 작성 규칙
+globs: ["src/components/**/*.tsx", "src/pages/**/*.tsx"]
+alwaysApply: false
+---
+
+# React 컴포넌트 규칙
+
+## 컴포넌트 구조
+
+- 함수형 컴포넌트 + Hooks만 사용
+- Props는 interface로 정의 (type 대신)
+- 컴포넌트 파일 하나에 하나의 export default
+
+## Hooks 사용 순서
+
+1. useState
+2. useRef
+3. useMemo / useCallback
+4. useEffect
+5. 커스텀 Hooks
