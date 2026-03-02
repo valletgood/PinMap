@@ -8,6 +8,9 @@ import { useLogin } from "@/apis/auth/hooks";
 import { AxiosError } from "axios";
 import { ApiResponse } from "@/lib/api-response";
 import { toast } from "react-toastify";
+import { setToken } from "@/lib/auth";
+import { useAuthStore } from "@/stores/authStore";
+import { GuestGuard } from "@/components/auth/GuestGuard";
 
 /**
  * Login 페이지
@@ -20,6 +23,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { login } = useAuthStore();
 
   const loginMutation = useLogin();
 
@@ -34,7 +38,14 @@ export default function LoginPage() {
     loginMutation.mutate(
       { email, password },
       {
-        onSuccess: () => {
+        onSuccess: (data) => {
+          // 토큰 저장 (응답에 토큰이 포함된 경우)
+          if (data.token && data.user) {
+            setToken(data.token);
+            // zustand 스토어에 로그인 상태 저장
+            login(data.user, data.token);
+          }
+          toast.success("로그인에 성공했습니다.");
           router.push("/");
         },
         onError: (error) => {
@@ -43,99 +54,105 @@ export default function LoginPage() {
         },
       }
     );
-  }, [email, password, loginMutation, router]);
+  }, [email, password, loginMutation, router, login]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 px-4 py-12">
-      <div className="w-full max-w-md">
-        {/* 헤더 */}
-        <div className="text-center mb-8 space-y-3">
-          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
-            PinMap
-          </h1>
-          <p className="text-gray-600 text-lg">실제로 가본 맛집을 공유하세요</p>
-        </div>
+    <GuestGuard>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 px-4 py-12">
+        <div className="w-full max-w-md">
+          {/* 헤더 */}
+          <div className="text-center mb-8 space-y-3">
+            <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+              PinMap
+            </h1>
+            <p className="text-gray-600 text-lg">
+              실제로 가본 맛집을 공유하세요
+            </p>
+          </div>
 
-        {/* 로그인 카드 */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-amber-100">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">로그인</h2>
+          {/* 로그인 카드 */}
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-amber-100">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+              로그인
+            </h2>
 
-          <div className="space-y-5">
-            {error && (
-              <div
-                className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"
-                role="alert"
-              >
-                {error}
+            <div className="space-y-5">
+              {error && (
+                <div
+                  className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"
+                  role="alert"
+                >
+                  {error}
+                </div>
+              )}
+
+              <Input
+                type="email"
+                label="이메일"
+                placeholder="your@email.com"
+                value={email}
+                onChange={(value: string) => setEmail(value)}
+                required
+                disabled={loginMutation.isPending}
+                autoComplete="email"
+                aria-label="이메일 입력"
+              />
+
+              <Input
+                type="password"
+                label="비밀번호"
+                placeholder="비밀번호를 입력하세요"
+                value={password}
+                onChange={(value: string) => setPassword(value)}
+                required
+                disabled={loginMutation.isPending}
+                autoComplete="current-password"
+                aria-label="비밀번호 입력"
+              />
+
+              <div className="pt-2">
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="lg"
+                  onClick={handleLogin}
+                  isLoading={loginMutation.isPending}
+                  disabled={
+                    !email.trim() || !password.trim() || loginMutation.isPending
+                  }
+                  className="w-full"
+                >
+                  로그인
+                </Button>
               </div>
-            )}
-
-            <Input
-              type="email"
-              label="이메일"
-              placeholder="your@email.com"
-              value={email}
-              onChange={(value: string) => setEmail(value)}
-              required
-              disabled={loginMutation.isPending}
-              autoComplete="email"
-              aria-label="이메일 입력"
-            />
-
-            <Input
-              type="password"
-              label="비밀번호"
-              placeholder="비밀번호를 입력하세요"
-              value={password}
-              onChange={(value: string) => setPassword(value)}
-              required
-              disabled={loginMutation.isPending}
-              autoComplete="current-password"
-              aria-label="비밀번호 입력"
-            />
-
-            <div className="pt-2">
-              <Button
-                type="button"
-                variant="primary"
-                size="lg"
-                onClick={handleLogin}
-                isLoading={loginMutation.isPending}
-                disabled={
-                  !email.trim() || !password.trim() || loginMutation.isPending
-                }
-                className="w-full"
-              >
-                로그인
-              </Button>
             </div>
-          </div>
 
-          {/* 추가 링크 */}
-          <div className="mt-6 text-center space-y-3">
-            <a
-              href="#"
-              className="text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors"
-            >
-              비밀번호를 잊으셨나요?
-            </a>
-            <div className="text-sm text-gray-600">
-              계정이 없으신가요?{" "}
+            {/* 추가 링크 */}
+            <div className="mt-6 text-center space-y-3">
               <a
-                href="/signup"
-                className="text-amber-600 hover:text-amber-700 font-medium transition-colors"
+                href="#"
+                className="text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors"
               >
-                회원가입
+                비밀번호를 잊으셨나요?
               </a>
+              <div className="text-sm text-gray-600">
+                계정이 없으신가요?{" "}
+                <a
+                  href="/signup"
+                  className="text-amber-600 hover:text-amber-700 font-medium transition-colors"
+                >
+                  회원가입
+                </a>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* 푸터 */}
-        <p className="mt-8 text-center text-sm text-gray-500">
-          광고 없는, 진정성 있는 맛집 추천 플랫폼
-        </p>
+          {/* 푸터 */}
+          <p className="mt-8 text-center text-sm text-gray-500">
+            광고 없는, 진정성 있는 맛집 추천 플랫폼
+          </p>
+        </div>
       </div>
-    </div>
+    </GuestGuard>
   );
 }

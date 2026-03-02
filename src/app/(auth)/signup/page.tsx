@@ -11,6 +11,7 @@ import { ApiResponse, ErrorCode } from "@/lib/api-response";
 import { AxiosError } from "axios";
 import { SignupRequest } from "@/apis/auth/types";
 import { toast } from "react-toastify";
+import { GuestGuard } from "@/components/auth/GuestGuard";
 
 /**
  * Signup 페이지
@@ -180,240 +181,244 @@ export default function SignupPage() {
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 px-4 py-12">
-      <div className="w-full max-w-md">
-        {/* 헤더 */}
-        <div className="text-center mb-8 space-y-3">
-          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
-            PinMap
-          </h1>
-          <p className="text-gray-600 text-lg">실제로 가본 맛집을 공유하세요</p>
-        </div>
+    <GuestGuard>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 px-4 py-12">
+        <div className="w-full max-w-md">
+          {/* 헤더 */}
+          <div className="text-center mb-8 space-y-3">
+            <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+              PinMap
+            </h1>
+            <p className="text-gray-600 text-lg">
+              실제로 가본 맛집을 공유하세요
+            </p>
+          </div>
 
-        {/* 회원가입 카드 */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-amber-100">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-            회원가입
-          </h2>
+          {/* 회원가입 카드 */}
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-amber-100">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+              회원가입
+            </h2>
 
-          <section className="space-y-5" aria-label="회원가입 폼">
-            <Input
-              type="text"
-              label="이름"
-              placeholder="홍길동"
-              value={name}
-              onChange={handleName}
-              required
-              disabled={isLoading || signupMutation.isPending}
-              autoComplete="name"
-              aria-label="이름 입력"
-            />
-
-            <div className="space-y-2">
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <Input
-                    type="email"
-                    label="이메일"
-                    placeholder="your@email.com"
-                    value={email}
-                    onChange={handleEmail}
-                    required
-                    disabled={
-                      isLoading ||
-                      checkEmailMutation.isPending ||
-                      signupMutation.isPending
-                    }
-                    autoComplete="email"
-                    aria-label="이메일 입력"
-                  />
-                </div>
-                <div className="flex items-end pb-0.5">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="md"
-                    onClick={handleCheckEmailDuplicate}
-                    disabled={
-                      !email.trim() ||
-                      !isValidEmailFormat(email) ||
-                      checkEmailMutation.isPending ||
-                      isLoading ||
-                      signupMutation.isPending ||
-                      isEmailAvailable === true
-                    }
-                    isLoading={checkEmailMutation.isPending}
-                    className="whitespace-nowrap"
-                    aria-label="이메일 중복확인"
-                  >
-                    중복확인
-                  </Button>
-                </div>
-              </div>
-
-              {isEmailAvailable === true && (
-                <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <svg
-                    className="w-5 h-5 text-green-600 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                  <span className="text-sm font-medium text-green-700">
-                    사용 가능한 이메일입니다
-                  </span>
-                </div>
-              )}
-
-              {isEmailAvailable === false && emailCheckError && (
-                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <svg
-                    className="w-5 h-5 text-red-600 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                  <span className="text-sm font-medium text-red-700">
-                    {emailCheckError}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <Input
-              type="password"
-              label="비밀번호"
-              placeholder="8자 이상 입력하세요"
-              value={password}
-              onChange={handlePassword}
-              required
-              disabled={isLoading || signupMutation.isPending}
-              autoComplete="new-password"
-              aria-label="비밀번호 입력"
-              helperText="영문, 숫자, 특수문자를 포함한 8자 이상 작성해주세요."
-            />
-
-            <Input
-              type="password"
-              label="비밀번호 확인"
-              placeholder="비밀번호를 다시 입력하세요"
-              value={confirmPassword}
-              onChange={handleConfirmPassword}
-              required
-              disabled={isLoading || signupMutation.isPending}
-              autoComplete="new-password"
-              aria-label="비밀번호 확인 입력"
-              error={
-                confirmPassword !== password
-                  ? "비밀번호가 일치하지 않습니다."
-                  : undefined
-              }
-            />
-
-            <Input
-              type="date"
-              label="생년월일"
-              placeholder="YYYY-MM-DD"
-              value={birthDate}
-              onChange={handleBirthDateChange}
-              required
-              disabled={isLoading || signupMutation.isPending}
-              autoComplete="birth-date"
-              aria-label="생년월일 입력"
-            />
-
-            <div className="space-y-3">
-              <label
-                htmlFor="gender"
-                className="block text-sm font-medium text-gray-700"
-              >
-                성별
-              </label>
-              <div className="flex gap-3 items-center justify-start">
-                <Radio
-                  id="gender-male"
-                  name="gender"
-                  value="male"
-                  label="남성"
-                  checked={gender === "male"}
-                  onChange={() => handleGenderChange("male")}
-                  disabled={isLoading || signupMutation.isPending}
-                />
-                <Radio
-                  id="gender-female"
-                  name="gender"
-                  value="female"
-                  label="여성"
-                  checked={gender === "female"}
-                  onChange={() => handleGenderChange("female")}
-                  disabled={isLoading || signupMutation.isPending}
-                />
-              </div>
-            </div>
-
-            <div className="pt-2">
-              <Checkbox
-                id="terms"
-                label="이용약관 및 개인정보처리방침에 동의합니다"
-                checked={agreeToTerms}
-                onChange={handleAgreeToTerms}
+            <section className="space-y-5" aria-label="회원가입 폼">
+              <Input
+                type="text"
+                label="이름"
+                placeholder="홍길동"
+                value={name}
+                onChange={handleName}
                 required
                 disabled={isLoading || signupMutation.isPending}
-                helperText="서비스 이용을 위해 필수 동의 항목입니다"
+                autoComplete="name"
+                aria-label="이름 입력"
               />
-            </div>
 
-            <div className="pt-2">
-              <Button
-                type="button"
-                variant="primary"
-                size="lg"
-                onClick={handleSubmit}
-                isLoading={isLoading || signupMutation.isPending}
-                disabled={!isFormValid || signupMutation.isPending}
-                className="w-full"
-                aria-label="회원가입 버튼"
-              >
-                회원가입
-              </Button>
-            </div>
-          </section>
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <Input
+                      type="email"
+                      label="이메일"
+                      placeholder="your@email.com"
+                      value={email}
+                      onChange={handleEmail}
+                      required
+                      disabled={
+                        isLoading ||
+                        checkEmailMutation.isPending ||
+                        signupMutation.isPending
+                      }
+                      autoComplete="email"
+                      aria-label="이메일 입력"
+                    />
+                  </div>
+                  <div className="flex items-end pb-0.5">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="md"
+                      onClick={handleCheckEmailDuplicate}
+                      disabled={
+                        !email.trim() ||
+                        !isValidEmailFormat(email) ||
+                        checkEmailMutation.isPending ||
+                        isLoading ||
+                        signupMutation.isPending ||
+                        isEmailAvailable === true
+                      }
+                      isLoading={checkEmailMutation.isPending}
+                      className="whitespace-nowrap"
+                      aria-label="이메일 중복확인"
+                    >
+                      중복확인
+                    </Button>
+                  </div>
+                </div>
 
-          {/* 추가 링크 */}
-          <div className="mt-6 text-center">
-            <div className="text-sm text-gray-600">
-              이미 계정이 있으신가요?{" "}
-              <a
-                href="/auth/login"
-                className="text-amber-600 hover:text-amber-700 font-medium transition-colors"
-              >
-                로그인
-              </a>
+                {isEmailAvailable === true && (
+                  <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <svg
+                      className="w-5 h-5 text-green-600 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    <span className="text-sm font-medium text-green-700">
+                      사용 가능한 이메일입니다
+                    </span>
+                  </div>
+                )}
+
+                {isEmailAvailable === false && emailCheckError && (
+                  <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <svg
+                      className="w-5 h-5 text-red-600 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                    <span className="text-sm font-medium text-red-700">
+                      {emailCheckError}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <Input
+                type="password"
+                label="비밀번호"
+                placeholder="8자 이상 입력하세요"
+                value={password}
+                onChange={handlePassword}
+                required
+                disabled={isLoading || signupMutation.isPending}
+                autoComplete="new-password"
+                aria-label="비밀번호 입력"
+                helperText="영문, 숫자, 특수문자를 포함한 8자 이상 작성해주세요."
+              />
+
+              <Input
+                type="password"
+                label="비밀번호 확인"
+                placeholder="비밀번호를 다시 입력하세요"
+                value={confirmPassword}
+                onChange={handleConfirmPassword}
+                required
+                disabled={isLoading || signupMutation.isPending}
+                autoComplete="new-password"
+                aria-label="비밀번호 확인 입력"
+                error={
+                  confirmPassword !== password
+                    ? "비밀번호가 일치하지 않습니다."
+                    : undefined
+                }
+              />
+
+              <Input
+                type="date"
+                label="생년월일"
+                placeholder="YYYY-MM-DD"
+                value={birthDate}
+                onChange={handleBirthDateChange}
+                required
+                disabled={isLoading || signupMutation.isPending}
+                autoComplete="birth-date"
+                aria-label="생년월일 입력"
+              />
+
+              <div className="space-y-3">
+                <label
+                  htmlFor="gender"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  성별
+                </label>
+                <div className="flex gap-3 items-center justify-start">
+                  <Radio
+                    id="gender-male"
+                    name="gender"
+                    value="male"
+                    label="남성"
+                    checked={gender === "male"}
+                    onChange={() => handleGenderChange("male")}
+                    disabled={isLoading || signupMutation.isPending}
+                  />
+                  <Radio
+                    id="gender-female"
+                    name="gender"
+                    value="female"
+                    label="여성"
+                    checked={gender === "female"}
+                    onChange={() => handleGenderChange("female")}
+                    disabled={isLoading || signupMutation.isPending}
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <Checkbox
+                  id="terms"
+                  label="이용약관 및 개인정보처리방침에 동의합니다"
+                  checked={agreeToTerms}
+                  onChange={handleAgreeToTerms}
+                  required
+                  disabled={isLoading || signupMutation.isPending}
+                  helperText="서비스 이용을 위해 필수 동의 항목입니다"
+                />
+              </div>
+
+              <div className="pt-2">
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="lg"
+                  onClick={handleSubmit}
+                  isLoading={isLoading || signupMutation.isPending}
+                  disabled={!isFormValid || signupMutation.isPending}
+                  className="w-full"
+                  aria-label="회원가입 버튼"
+                >
+                  회원가입
+                </Button>
+              </div>
+            </section>
+
+            {/* 추가 링크 */}
+            <div className="mt-6 text-center">
+              <div className="text-sm text-gray-600">
+                이미 계정이 있으신가요?{" "}
+                <a
+                  href="/auth/login"
+                  className="text-amber-600 hover:text-amber-700 font-medium transition-colors"
+                >
+                  로그인
+                </a>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* 푸터 */}
-        <p className="mt-8 text-center text-sm text-gray-500">
-          광고 없는, 진정성 있는 맛집 추천 플랫폼
-        </p>
+          {/* 푸터 */}
+          <p className="mt-8 text-center text-sm text-gray-500">
+            광고 없는, 진정성 있는 맛집 추천 플랫폼
+          </p>
+        </div>
       </div>
-    </div>
+    </GuestGuard>
   );
 }

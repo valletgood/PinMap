@@ -37,15 +37,18 @@ export const authService = {
   /**
    * 로그인
    * @param loginData - 로그인 정보 (이메일, 비밀번호)
-   * @returns 정규화된 응답 데이터 (user 정보)
+   * @returns 정규화된 응답 데이터 (user 정보 및 토큰)
    * @throws ApiError - 에러 발생 시
    */
-  login: async (loginData: LoginRequest): Promise<{ user: User }> => {
-    const response = await axiosInstance.post<ApiResponse<{ user: User }>>(
-      "/api/auth/login",
-      loginData
-    );
+  login: async (
+    loginData: LoginRequest
+  ): Promise<{ user: User; token: string }> => {
+    const response = await axiosInstance.post<
+      ApiResponse<{ user: User; token: string }>
+    >("/api/auth/login", loginData);
 
-    return normalizeResponse<ApiResponse<{ user: User }>>(response).data;
+    return normalizeResponse<ApiResponse<{ user: User; token: string }>>(
+      response
+    ).data;
   },
 };

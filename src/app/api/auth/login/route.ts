@@ -1,8 +1,9 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { successResponse, errorResponse, ErrorCode } from "@/lib/api-response";
+import { generateToken } from "@/lib/jwt";
 import bcrypt from "bcryptjs";
 
 /**
@@ -62,12 +63,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // JWT 토큰 생성
+    const token = generateToken({
+      userId: user.id,
+      email: user.email,
+    });
+
     // 비밀번호를 제외한 사용자 정보 반환
     const { password: _, ...userWithoutPassword } = user;
 
-    return successResponse("로그인에 성공했습니다.", {
+    // 응답 생성
+    const response = successResponse("로그인에 성공했습니다.", {
       user: userWithoutPassword,
+      token,
     });
+
+    // HTTP-only 쿠키에 토큰 저장 (보안 강화)
+    response.cookies.set("auth_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7, // 7일
+      path: "/",
+    });
+
+    return response;
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error("로그인 오류:", error);
