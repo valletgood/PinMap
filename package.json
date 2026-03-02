@@ -14,13 +14,18 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.21",
+    "@types/bcryptjs": "^3.0.0",
     "axios": "^1.13.6",
+    "bcryptjs": "^3.0.3",
     "clsx": "^2.1.0",
+    "dayjs": "^1.11.19",
     "drizzle-orm": "^0.36.0",
     "next": "^14.2.0",
     "pg": "^8.11.0",
     "react": "^18.3.0",
+    "react-datepicker": "^9.1.0",
     "react-dom": "^18.3.0",
+    "react-toastify": "^11.0.5",
     "tailwind-merge": "^2.4.0"
   },
   "devDependencies": {
