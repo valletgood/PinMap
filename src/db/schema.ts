@@ -27,3 +27,6 @@ export const users = pgTable("users", {
   agreedToTerms: boolean("agreed_to_terms").notNull().default(false), // 이용약관 동의 여부
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
