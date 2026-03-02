@@ -374,7 +374,7 @@ export default function SignupPage() {
               <div className="pt-2">
                 <Checkbox
                   id="terms"
-                  label="이용약관 및 개인정보처리방침에 동의합니다"
+                  label="현재 위치 정보를 수집합니다"
                   checked={agreeToTerms}
                   onChange={handleAgreeToTerms}
                   required

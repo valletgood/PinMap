@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -11,6 +11,8 @@ import { toast } from "react-toastify";
 import { setToken } from "@/lib/auth";
 import { useAuthStore } from "@/stores/authStore";
 import { GuestGuard } from "@/components/auth/GuestGuard";
+import { handleCurrentLocation } from "@/lib/location";
+import { useLocationStore } from "@/stores/locationStore";
 
 /**
  * Login 페이지
@@ -24,8 +26,36 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { login } = useAuthStore();
+  const { setLocation } = useLocationStore();
 
   const loginMutation = useLogin();
+
+  /**
+   * 페이지 로드 시 위치 권한 요청
+   */
+  useEffect(() => {
+    const requestLocationPermission = async () => {
+      // 브라우저가 Geolocation을 지원하는지 확인
+      if (typeof window === "undefined" || !navigator.geolocation) {
+        return;
+      }
+
+      try {
+        // 위치 권한 요청 (브라우저 알림 팝업 표시)
+        const location = await handleCurrentLocation();
+        setLocation(location);
+      } catch (error) {
+        console.log("위치 권한 요청 결과:", error);
+      }
+    };
+
+    // 페이지 로드 후 약간의 지연을 두고 위치 권한 요청
+    const timer = setTimeout(() => {
+      requestLocationPermission();
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleLogin = useCallback(async () => {
     if (!email.trim() || !password.trim()) {
