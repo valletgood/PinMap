@@ -30,7 +30,10 @@ export function MapView() {
       interactive: true,
     });
 
-    mapRef.current.addControl(new maplibregl.NavigationControl(), "top-right");
+    mapRef.current.addControl(
+      new maplibregl.NavigationControl(),
+      "bottom-right"
+    );
 
     // cleanup
     return () => {
@@ -39,5 +42,11 @@ export function MapView() {
     };
   }, []);
 
-  return <div ref={containerRef} style={{ width: "100%", height: "100vh" }} />;
+  return (
+    <div
+      ref={containerRef}
+      className="w-full h-full"
+      style={{ width: "100%", height: "100%" }}
+    />
+  );
 }
