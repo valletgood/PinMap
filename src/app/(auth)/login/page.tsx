@@ -13,6 +13,9 @@ import { useAuthStore } from "@/stores/authStore";
 import { GuestGuard } from "@/components/auth/GuestGuard";
 import { handleCurrentLocation } from "@/lib/location";
 import { useLocationStore } from "@/stores/locationStore";
+import Image from "next/image";
+import logo from "../../../../public/icons/logo.png";
+import { Checkbox } from "@/components/ui/Checkbox";
 
 /**
  * Login 페이지
@@ -24,6 +27,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isRemember, setIsRemember] = useState(false);
   const router = useRouter();
   const { login } = useAuthStore();
   const { setLocation } = useLocationStore();
@@ -55,7 +59,7 @@ export default function LoginPage() {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [setLocation]);
 
   const handleLogin = useCallback(async () => {
     if (!email.trim() || !password.trim()) {
@@ -88,28 +92,41 @@ export default function LoginPage() {
 
   return (
     <GuestGuard>
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 px-4 py-12">
-        <div className="w-full max-w-md">
-          {/* 헤더 */}
-          <div className="text-center mb-8 space-y-3">
-            <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
-              PinMap
-            </h1>
-            <p className="text-gray-600 text-lg">
-              실제로 가본 맛집을 공유하세요
-            </p>
+      <div className="min-h-screen flex items-center justify-center bg-white px-4 py-6 md:px-4 md:py-12 relative overflow-hidden">
+        {/* SVG와 동일한 배경 그라데이션 효과 */}
+        <div className="absolute inset-0 pointer-events-none">
+          {/* 좌측 상단 베이지 원형 그라데이션 */}
+          <div className="absolute top-0 left-0 w-[300px] h-[300px] md:w-[582px] md:h-[582px] -translate-x-1/3 -translate-y-1/3 md:-translate-x-1/4 md:-translate-y-1/4 opacity-90 md:opacity-80 blur-[80px] md:blur-[184px]">
+            <div className="w-full h-full rounded-full bg-[#EBC894]"></div>
           </div>
+          {/* 우측 하단 라벤더 원형 그라데이션 */}
+          <div className="absolute bottom-0 right-0 w-[400px] h-[400px] md:w-[934px] md:h-[934px] translate-x-1/3 translate-y-1/3 md:translate-x-1/4 md:translate-y-1/4 opacity-90 md:opacity-80 blur-[100px] md:blur-[295px]">
+            <div className="w-full h-full rounded-full bg-[#B49EF4]"></div>
+          </div>
+        </div>
 
-          {/* 로그인 카드 */}
-          <div className="bg-white rounded-2xl shadow-xl p-8 border border-amber-100">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+        <div className="w-full max-w-md relative z-10">
+          {/* 헤더 */}
+
+          {/* 로그인 카드 - 부드러운 파스텔 스타일 */}
+          <div className="bg-white/60 rounded-2xl md:rounded-3xl p-6 md:p-8 border border-gray">
+            <div className="text-center mb-6 md:mb-8 space-y-3 md:space-y-4">
+              <div className="flex justify-center mb-6">
+                <Image
+                  src={logo}
+                  alt="PinMap"
+                  className="w-12 h-12 md:w-14 md:h-14 drop-shadow-sm"
+                />
+              </div>
+            </div>
+            <h2 className="text-center text-xl md:text-2xl font-semibold text-gray-600 mb-5 md:mb-6">
               로그인
             </h2>
 
-            <div className="space-y-5">
+            <div className="space-y-4 md:space-y-5">
               {error && (
                 <div
-                  className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"
+                  className="bg-red-50/80 border border-red-200/60 text-red-600 px-4 py-3 rounded-lg text-sm backdrop-blur-sm"
                   role="alert"
                 >
                   {error}
@@ -139,6 +156,21 @@ export default function LoginPage() {
                 autoComplete="current-password"
                 aria-label="비밀번호 입력"
               />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    label="로그인 상태 유지"
+                    checked={isRemember}
+                    onChange={setIsRemember}
+                  />
+                </div>
+                <a
+                  href="#"
+                  className="text-sm text-[#0052B4] opacity-90 hover:text-purple-700 font-medium transition-colors active:opacity-70"
+                >
+                  비밀번호를 잊으셨나요?
+                </a>
+              </div>
 
               <div className="pt-2">
                 <Button
@@ -158,29 +190,18 @@ export default function LoginPage() {
             </div>
 
             {/* 추가 링크 */}
-            <div className="mt-6 text-center space-y-3">
-              <a
-                href="#"
-                className="text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors"
-              >
-                비밀번호를 잊으셨나요?
-              </a>
+            <div className="mt-5 md:mt-6 text-center space-y-2 md:space-y-3">
               <div className="text-sm text-gray-600">
                 계정이 없으신가요?{" "}
                 <a
                   href="/signup"
-                  className="text-amber-600 hover:text-amber-700 font-medium transition-colors"
+                  className="text-[#0052B4] opacity-90 hover:text-[#0052B4] font-medium transition-colors active:opacity-70"
                 >
                   회원가입
                 </a>
               </div>
             </div>
           </div>
-
-          {/* 푸터 */}
-          <p className="mt-8 text-center text-sm text-gray-500">
-            광고 없는, 진정성 있는 맛집 추천 플랫폼
-          </p>
         </div>
       </div>
     </GuestGuard>

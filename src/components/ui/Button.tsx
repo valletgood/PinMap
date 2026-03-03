@@ -24,13 +24,13 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles = {
   primary:
-    "bg-amber-600 text-white hover:bg-amber-700 active:bg-amber-800 disabled:bg-amber-300 disabled:cursor-not-allowed",
+    "bg-[#6938D3] text-white hover:bg-[#5a2fb8] active:bg-[#4b269d] disabled:bg-purple-300 disabled:cursor-not-allowed",
   secondary:
     "bg-gray-100 text-gray-900 hover:bg-gray-200 active:bg-gray-300 disabled:bg-gray-50 disabled:cursor-not-allowed",
   outline:
-    "border-2 border-amber-600 text-amber-600 hover:bg-amber-50 active:bg-amber-100 disabled:border-amber-300 disabled:text-amber-300 disabled:cursor-not-allowed",
+    "border-2 border-[#6938D3] text-[#6938D3] hover:bg-purple-50 active:bg-purple-100 disabled:border-purple-300 disabled:text-purple-300 disabled:cursor-not-allowed",
   ghost:
-    "text-amber-600 hover:bg-amber-50 active:bg-amber-100 disabled:text-amber-300 disabled:cursor-not-allowed",
+    "text-[#6938D3] hover:bg-purple-50 active:bg-purple-100 disabled:text-purple-300 disabled:cursor-not-allowed",
 };
 
 const sizeStyles = {
@@ -53,7 +53,7 @@ export const Button = React.memo<ButtonProps>(
       <button
         type="button"
         className={cn(
-          "font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50",
+          "font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#6938D3] focus:ring-offset-2 disabled:opacity-50",
           variantStyles[variant],
           sizeStyles[size],
           className

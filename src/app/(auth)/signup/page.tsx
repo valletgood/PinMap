@@ -12,6 +12,8 @@ import { AxiosError } from "axios";
 import { SignupRequest } from "@/apis/auth/types";
 import { toast } from "react-toastify";
 import { GuestGuard } from "@/components/auth/GuestGuard";
+import Image from "next/image";
+import logo from "../../../../public/icons/logo.png";
 
 /**
  * Signup 페이지
@@ -182,25 +184,39 @@ export default function SignupPage() {
 
   return (
     <GuestGuard>
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 px-4 py-12">
-        <div className="w-full max-w-md">
-          {/* 헤더 */}
-          <div className="text-center mb-8 space-y-3">
-            <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
-              PinMap
-            </h1>
-            <p className="text-gray-600 text-lg">
-              실제로 가본 맛집을 공유하세요
-            </p>
+      <div className="min-h-screen flex items-center justify-center bg-white px-4 py-6 md:px-4 md:py-12 relative overflow-hidden">
+        {/* SVG와 동일한 배경 그라데이션 효과 */}
+        <div className="absolute inset-0 pointer-events-none">
+          {/* 좌측 상단 베이지 원형 그라데이션 */}
+          <div className="absolute top-0 left-0 w-[300px] h-[300px] md:w-[582px] md:h-[582px] -translate-x-1/3 -translate-y-1/3 md:-translate-x-1/4 md:-translate-y-1/4 opacity-90 md:opacity-80 blur-[80px] md:blur-[184px]">
+            <div className="w-full h-full rounded-full bg-[#EBC894]"></div>
           </div>
+          {/* 우측 하단 라벤더 원형 그라데이션 */}
+          <div className="absolute bottom-0 right-0 w-[400px] h-[400px] md:w-[934px] md:h-[934px] translate-x-1/3 translate-y-1/3 md:translate-x-1/4 md:translate-y-1/4 opacity-90 md:opacity-80 blur-[100px] md:blur-[295px]">
+            <div className="w-full h-full rounded-full bg-[#B49EF4]"></div>
+          </div>
+        </div>
 
+        <div className="w-full max-w-md relative z-10">
           {/* 회원가입 카드 */}
-          <div className="bg-white rounded-2xl shadow-xl p-8 border border-amber-100">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+          <div className="bg-white/60 rounded-2xl md:rounded-3xl p-6 md:p-8 border border-gray max-h-[calc(100vh-8rem)] md:max-h-none overflow-y-auto">
+            <div className="text-center mb-6 md:mb-8 space-y-3 md:space-y-4">
+              <div className="flex justify-center mb-6">
+                <Image
+                  src={logo}
+                  alt="PinMap"
+                  className="w-12 h-12 md:w-14 md:h-14 drop-shadow-sm"
+                />
+              </div>
+            </div>
+            <h2 className="text-center text-xl md:text-2xl font-semibold text-gray-600 mb-5 md:mb-6">
               회원가입
             </h2>
 
-            <section className="space-y-5" aria-label="회원가입 폼">
+            <section
+              className="space-y-4 md:space-y-5"
+              aria-label="회원가입 폼"
+            >
               <Input
                 type="text"
                 label="이름"
@@ -214,7 +230,7 @@ export default function SignupPage() {
               />
 
               <div className="space-y-2">
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <div className="flex-1">
                     <Input
                       type="email"
@@ -232,7 +248,7 @@ export default function SignupPage() {
                       aria-label="이메일 입력"
                     />
                   </div>
-                  <div className="flex items-end pb-0.5">
+                  <div className="flex items-end pb-0.5 sm:pb-0">
                     <Button
                       type="button"
                       variant="outline"
@@ -247,7 +263,7 @@ export default function SignupPage() {
                         isEmailAvailable === true
                       }
                       isLoading={checkEmailMutation.isPending}
-                      className="whitespace-nowrap"
+                      className="w-full sm:w-auto whitespace-nowrap"
                       aria-label="이메일 중복확인"
                     >
                       중복확인
@@ -342,14 +358,14 @@ export default function SignupPage() {
                 aria-label="생년월일 입력"
               />
 
-              <div className="space-y-3">
+              <div className="space-y-2 md:space-y-3">
                 <label
                   htmlFor="gender"
                   className="block text-sm font-medium text-gray-700"
                 >
                   성별
                 </label>
-                <div className="flex gap-3 items-center justify-start">
+                <div className="flex gap-3 md:gap-3 items-center justify-start">
                   <Radio
                     id="gender-male"
                     name="gender"
@@ -400,23 +416,18 @@ export default function SignupPage() {
             </section>
 
             {/* 추가 링크 */}
-            <div className="mt-6 text-center">
+            <div className="mt-5 md:mt-6 text-center">
               <div className="text-sm text-gray-600">
                 이미 계정이 있으신가요?{" "}
                 <a
-                  href="/auth/login"
-                  className="text-amber-600 hover:text-amber-700 font-medium transition-colors"
+                  href="/login"
+                  className="text-[#0052B4] opacity-90 hover:text-[#0052B4] font-medium transition-colors active:opacity-70"
                 >
                   로그인
                 </a>
               </div>
             </div>
           </div>
-
-          {/* 푸터 */}
-          <p className="mt-8 text-center text-sm text-gray-500">
-            광고 없는, 진정성 있는 맛집 추천 플랫폼
-          </p>
         </div>
       </div>
     </GuestGuard>

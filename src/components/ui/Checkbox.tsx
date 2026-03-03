@@ -41,7 +41,7 @@ export const Checkbox = React.memo<CheckboxProps>(
             id={checkboxId}
             type="checkbox"
             className={cn(
-              "w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-2 focus:ring-amber-500 focus:ring-offset-0 cursor-pointer transition-colors",
+              "w-4 h-4 text-[#6938D3] border-gray-300 rounded focus:ring-2 focus:ring-[#6938D3] focus:ring-offset-0 cursor-pointer transition-colors",
               "disabled:bg-gray-100 disabled:border-gray-300 disabled:cursor-not-allowed",
               className
             )}
