@@ -49,7 +49,7 @@ export default function Home() {
           onLocationSelect={handleLocationSelect}
           isFetching={isFetching}
         />
-        <MapView />
+        <MapView searchResults={searchLocationData?.items || []} />
       </div>
     </AuthGuard>
   );

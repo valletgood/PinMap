@@ -4,6 +4,7 @@ import React from "react";
 import { Location } from "@/apis/location/types";
 import { cn } from "@/lib/utils";
 import { Button } from "./Button";
+import { useLocationStore } from "@/stores/locationStore";
 
 /**
  * SearchLoctionList 컴포넌트
@@ -40,6 +41,9 @@ export function SearchLoctionList({
   }
 
   const handleLocationClick = (location: Location) => {
+    const lon = Number(location.mapx) / 1e7;
+    const lat = Number(location.mapy) / 1e7;
+    useLocationStore.setState({ location: { lat, lng: lon } });
     onSelect?.(location);
   };
 
