@@ -6,14 +6,41 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useLocationStore } from "@/stores/locationStore";
 import { Location } from "@/apis/location/types";
 
+const FOOD_CATEGORIES = ["한식", "양식", "일식", "중식"];
+const DESSERT_CATEGORIES = ["카페", "디저트"];
+
+const MARKER_ICONS = {
+  food: "/icons/map_food.png",
+  dessert: "/icons/map_dessert.png",
+  default: "/icons/map_default.png",
+} as const;
+
+const MARKER_SIZE = { width: 63, height: 81 }; // 42x54 기준 1.5배
+
+function getMarkerIconUrl(category: string): string {
+  const normalized = category?.trim() ?? "";
+  if (FOOD_CATEGORIES.some((c) => normalized.includes(c)))
+    return MARKER_ICONS.food;
+  if (DESSERT_CATEGORIES.some((c) => normalized.includes(c)))
+    return MARKER_ICONS.dessert;
+  return MARKER_ICONS.default;
+}
+
 interface MapViewProps {
   /**
    * 검색 결과 목록
    */
   searchResults?: Location[];
+  /**
+   * 선택된 장소
+   */
+  selectedLocation?: Location | null;
 }
 
-export function MapView({ searchResults = [] }: MapViewProps) {
+export function MapView({
+  searchResults = [],
+  selectedLocation = null,
+}: MapViewProps) {
   const mapRef = useRef<maplibregl.Map | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const markersRef = useRef<maplibregl.Marker[]>([]);
@@ -106,19 +133,19 @@ export function MapView({ searchResults = [] }: MapViewProps) {
     if (!searchResults || searchResults.length === 0) return;
 
     // SVG 아이콘을 이미지로 로드
-    const iconUrl = "/icons/map_pin.svg";
 
     // 각 검색 결과에 마커 추가
     searchResults.forEach((location) => {
       // 네이버 좌표계를 WGS84로 변환
       const lng = Number(location.mapx) / 1e7;
       const lat = Number(location.mapy) / 1e7;
+      const iconUrl = getMarkerIconUrl(location.category);
 
       // 마커 엘리먼트 생성
       const el = document.createElement("div");
       el.className = "marker";
-      el.style.width = "42px";
-      el.style.height = "54px";
+      el.style.width = `${MARKER_SIZE.width}px`;
+      el.style.height = `${MARKER_SIZE.height}px`;
       el.style.backgroundImage = `url(${iconUrl})`;
       el.style.backgroundSize = "contain";
       el.style.backgroundRepeat = "no-repeat";
@@ -136,6 +163,41 @@ export function MapView({ searchResults = [] }: MapViewProps) {
       markersRef.current.push(marker);
     });
   }, [searchResults]);
+
+  useEffect(() => {
+    if (!mapRef.current || !selectedLocation || !isInitializedRef.current)
+      return;
+
+    const lng = Number(selectedLocation.mapx) / 1e7;
+    const lat = Number(selectedLocation.mapy) / 1e7;
+    const iconUrl = getMarkerIconUrl(selectedLocation.category);
+
+    mapRef.current.flyTo({
+      center: [lng, lat],
+      zoom: 16,
+    });
+
+    // 마커 엘리먼트 생성
+    const el = document.createElement("div");
+    el.className = "marker";
+    el.style.width = `${MARKER_SIZE.width}px`;
+    el.style.height = `${MARKER_SIZE.height}px`;
+    el.style.backgroundImage = `url(${iconUrl})`;
+    el.style.backgroundSize = "contain";
+    el.style.backgroundRepeat = "no-repeat";
+    el.style.backgroundPosition = "center";
+    el.style.cursor = "pointer";
+
+    // 마커 생성 및 추가
+    const marker = new maplibregl.Marker({
+      element: el,
+      anchor: "bottom",
+    })
+      .setLngLat([lng, lat])
+      .addTo(mapRef.current!);
+
+    markersRef.current.push(marker);
+  }, [selectedLocation]);
 
   return (
     <div

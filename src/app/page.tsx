@@ -6,10 +6,13 @@ import { Header } from "@/components/ui/Header";
 import { FloatingSearchBar } from "@/components/ui/FloatingSearchBar";
 import { useSearchLocation } from "@/apis/location/hooks";
 import { useState } from "react";
-import { SearchLoctionList } from "@/components/ui/SearchLoctionList";
+import { Location } from "@/apis/location/types";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(
+    null
+  );
 
   const { data: searchLocationData, isFetching } = useSearchLocation(
     searchQuery,
@@ -24,11 +27,14 @@ export default function Home() {
   const handleSearchSubmit = (query: string) => {
     // 검색 제출 로직 구현
     setSearchQuery(query);
+    setSelectedLocation(null);
   };
 
-  const handleLocationSelect = (location: any) => {
+  const handleLocationSelect = (location: Location) => {
     // 장소 선택 로직 구현
     console.log("선택된 장소:", location);
+    setSearchQuery("");
+    setSelectedLocation(location);
   };
 
   return (
@@ -49,7 +55,10 @@ export default function Home() {
           onLocationSelect={handleLocationSelect}
           isFetching={isFetching}
         />
-        <MapView searchResults={searchLocationData?.items || []} />
+        <MapView
+          searchResults={searchLocationData?.items || []}
+          selectedLocation={selectedLocation}
+        />
       </div>
     </AuthGuard>
   );

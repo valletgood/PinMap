@@ -108,6 +108,11 @@ export const FloatingSearchBar = React.memo<FloatingSearchBarProps>(
                   "focus:outline-none",
                   "disabled:cursor-not-allowed disabled:opacity-50"
                 )}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSubmit();
+                  }
+                }}
                 aria-label="검색어 입력"
               />
 
