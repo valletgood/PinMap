@@ -50,26 +50,6 @@ export function Modal({
             ) : (
               <span className="flex-1" aria-hidden />
             )}
-            <button
-              type="button"
-              aria-label="닫기"
-              onClick={onClose}
-              className="shrink-0 rounded-full text-gray-400 transition-colors hover:bg-[#6f62cb]/10 hover:text-[#6f62cb]"
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden
-              >
-                <path d="M18 6L6 18M6 6l12 12" />
-              </svg>
-            </button>
           </div>
           <div>{children}</div>
         </div>
