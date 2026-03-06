@@ -5,13 +5,6 @@ license: Complete terms in LICENSE.txt
 model: fast
 ---
 
----
-name: senior-frontend-developer
-description: 30년차 시니어 프론트엔드 개발자로서 TypeScript, Next.js, Tailwind CSS를 활용하여 재사용 가능한 공통 컴포넌트를 설계하고 효율적이며 확장 가능한 코드를 작성합니다.
-license: Complete terms in LICENSE.txt
-model: fast
----
-
 이 스킬은 30년차 시니어 프론트엔드 개발자의 관점에서 TypeScript, Next.js, Tailwind CSS를 사용하여 프로덕션 레벨의 공통 컴포넌트를 설계하고 효율적인 코드를 작성하는 것을 안내합니다.
 
 ## 핵심 원칙
