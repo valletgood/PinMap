@@ -5,8 +5,8 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useLocationStore } from "@/stores/locationStore";
 import { Location } from "@/apis/location/types";
-import { Modal } from "@/components/ui/Modal";
 import { LocationDetailModal } from "./LocationDetailModal";
+import { SaveLocationModal, SaveLocationData } from "./SaveLocationModal";
 
 const FOOD_CATEGORIES = ["한식", "양식", "일식", "중식"];
 const DESSERT_CATEGORIES = ["카페", "디저트"];
@@ -64,6 +64,7 @@ export function MapView({
     null
   );
   const [modalLocation, setModalLocation] = useState<Location | null>(null);
+  const [saveLocation, setSaveLocation] = useState<Location | null>(null);
   setModalLocationRef.current = setModalLocation;
   const { location } = useLocationStore();
   const isInitializedRef = useRef(false);
@@ -274,6 +275,20 @@ export function MapView({
         <LocationDetailModal
           location={modalLocation}
           onClose={() => setModalLocation(null)}
+          onSave={() => {
+            setSaveLocation(modalLocation);
+            setModalLocation(null);
+          }}
+        />
+      )}
+      {saveLocation && (
+        <SaveLocationModal
+          location={saveLocation}
+          onClose={() => setSaveLocation(null)}
+          onSubmit={(data: SaveLocationData) => {
+            console.log("저장 데이터:", data);
+            setSaveLocation(null);
+          }}
         />
       )}
     </>

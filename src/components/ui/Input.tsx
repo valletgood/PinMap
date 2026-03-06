@@ -75,8 +75,8 @@ export const Input = React.memo<InputProps>(
             onChange={handleOnChange}
             className={cn(
               "w-full px-4 py-2.5 text-base border rounded-lg transition-all duration-200",
-              "bg-white text-gray-900 placeholder:text-gray-400",
-              "focus:outline-none focus:ring-2 focus:ring-[#6f62cb] focus:border-transparent",
+              "bg-transparent text-gray-900 placeholder:text-gray-400",
+              "focus:outline-none focus:border-[#6f62cb]",
               "disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed disabled:placeholder:text-gray-300",
               hasError
                 ? "border-red-500 focus:ring-red-500"
