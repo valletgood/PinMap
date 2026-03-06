@@ -90,3 +90,30 @@ body {
   opacity: 0;
   animation: list-item-in 0.25s ease-out forwards;
 }
+
+/* 지도 마커 툴팁 */
+.map-marker-tooltip {
+  position: fixed;
+  z-index: 9999;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25;
+  color: #fafafa;
+  background: rgba(26, 26, 26, 0.92);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+  white-space: nowrap;
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transform: translate(-50%, -100%) translateY(-0.5rem);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.map-marker-tooltip.is-visible {
+  opacity: 1;
+  transform: translate(-50%, -100%) translateY(-0.5rem);
+}
