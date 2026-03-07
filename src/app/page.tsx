@@ -20,7 +20,7 @@ export default function Home() {
     setSelectedLocation(null);
   };
 
-  const handleLocationSelect = (location: Location) => {
+  const handleLocationSelect = (location: Location | null) => {
     // 장소 선택 로직 구현
     setSearchQuery("");
     setSelectedLocation(location);
@@ -40,6 +40,7 @@ export default function Home() {
           placeholder="맛집을 검색하세요"
           onSubmit={handleSearchSubmit}
           searchResults={searchLocationData?.items || []}
+          savedLocations={savedLocations?.data ?? []}
           onLocationSelect={handleLocationSelect}
           isFetching={isFetching}
         />

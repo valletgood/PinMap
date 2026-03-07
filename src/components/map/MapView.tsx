@@ -10,8 +10,14 @@ import { LocationDetailModal, type ModalDetail } from "./LocationDetailModal";
 import { SaveLocationModal } from "./SaveLocationModal";
 import { CompleteModal } from "../modal/CompleteModal";
 import { Spinner } from "@/components/ui/Spinner";
-import { applyMarkerSize, getMarkerIconUrl, getMarkerScale, MARKER_ICONS } from "@/lib/mapUtil";
-
+import {
+  applyMarkerSize,
+  getMarkerIconUrl,
+  getMarkerScale,
+  MARKER_ICONS,
+  findSavedMatch,
+  getModalDetailForLocation,
+} from "@/lib/mapUtil";
 
 interface MapViewProps {
   /**
@@ -173,12 +179,12 @@ export function MapView({
     // 검색 결과가 없으면 종료
     if (!searchResults || searchResults.length === 0) return;
 
-    // 각 검색 결과에 마커 추가
+    // 각 검색 결과에 마커 추가 (저장된 장소는 saved 레이어에서만 그림 → 여기서는 제외하고 saved 마커 아이콘만 사용)
     searchResults.forEach((loc) => {
-      // 네이버 좌표계를 WGS84로 변환
       const lng = Number(loc.mapx) / 1e7;
       const lat = Number(loc.mapy) / 1e7;
-      const iconUrl = getMarkerIconUrl(loc.category);
+      const isSaved = !!findSavedMatch(loc, savedLocations);
+      const iconUrl = isSaved ? MARKER_ICONS.saved : getMarkerIconUrl(loc.category);
 
       // 마커 엘리먼트 생성
       const el = document.createElement("div");
@@ -191,10 +197,9 @@ export function MapView({
       el.style.cursor = "pointer";
 
       el.addEventListener("click", () => {
-        setModalDetailRef.current?.({ type: "search", location: loc });
+        setModalDetailRef.current?.(getModalDetailForLocation(loc, savedLocations));
       });
 
-      // 마커 생성 및 추가
       const marker = new maplibregl.Marker({
         element: el,
         anchor: "bottom",
@@ -204,14 +209,22 @@ export function MapView({
 
       markersRef.current.push(marker);
     });
-  }, [searchResults]);
+  }, [searchResults, savedLocations]);
+
+  // 검색 목록에서 장소 선택 시 해당 장소로 이동 + 모달을 저장/검색 타입에 맞게 오픈
+  useEffect(() => {
+    if (!selectedLocation) return;
+    setModalDetail(getModalDetailForLocation(selectedLocation, savedLocations));
+  }, [selectedLocation, savedLocations]);
 
   useEffect(() => {
     if (!mapRef.current || !selectedLocation || !isInitializedRef.current) return;
 
     const lng = Number(selectedLocation.mapx) / 1e7;
     const lat = Number(selectedLocation.mapy) / 1e7;
-    const iconUrl = getMarkerIconUrl(selectedLocation.category);
+    const iconUrl = findSavedMatch(selectedLocation, savedLocations)
+      ? MARKER_ICONS.saved
+      : getMarkerIconUrl(selectedLocation.category);
 
     mapRef.current.flyTo({
       center: [lng, lat],
@@ -231,7 +244,7 @@ export function MapView({
     el.style.cursor = "pointer";
 
     el.addEventListener("click", () => {
-      setModalDetailRef.current?.({ type: "search", location: selectedLocation });
+      setModalDetailRef.current?.(getModalDetailForLocation(selectedLocation, savedLocations));
     });
 
     // 마커 생성 및 추가
@@ -243,7 +256,7 @@ export function MapView({
       .addTo(mapRef.current!);
 
     markersRef.current.push(marker);
-  }, [selectedLocation]);
+  }, [selectedLocation, savedLocations]);
 
   // 저장된 장소 마커 (map_love.png) — 지도 로드 완료(isMapReady) 후 또는 savedLocations 변경 시 실행
   useEffect(() => {

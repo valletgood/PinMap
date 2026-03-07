@@ -6,6 +6,7 @@ import { Button } from "./Button";
 import { Input } from "./Input";
 import { SearchLoctionList } from "./SearchLoctionList";
 import { type Location } from "@/apis/location/types";
+import type { SavedLocation } from "@/db/schema";
 
 /**
  * FloatingSearchBar 컴포넌트
@@ -35,9 +36,13 @@ interface FloatingSearchBarProps {
    */
   searchResults?: Location[];
   /**
+   * 저장된 장소 목록 (검색 결과에서 저장 여부 표시용)
+   */
+  savedLocations?: SavedLocation[];
+  /**
    * 장소 선택 시 호출되는 콜백 함수
    */
-  onLocationSelect?: (location: Location) => void;
+  onLocationSelect?: (location: Location | null) => void;
   /**
    * 추가 CSS 클래스
    */
@@ -57,6 +62,7 @@ export const FloatingSearchBar = React.memo<FloatingSearchBarProps>(
     placeholder = "맛집을 검색하세요",
     onSubmit,
     searchResults = [],
+    savedLocations = [],
     onLocationSelect,
     className = "",
     disabled = false,
@@ -169,7 +175,11 @@ export const FloatingSearchBar = React.memo<FloatingSearchBarProps>(
               {/* 검색 결과 목록 */}
               {!isFetching && hasResults && (
                 <div className="p-2">
-                  <SearchLoctionList data={searchResults} onSelect={onLocationSelect} />
+                  <SearchLoctionList
+                    data={searchResults}
+                    savedLocations={savedLocations}
+                    onSelect={onLocationSelect}
+                  />
                 </div>
               )}
             </div>
