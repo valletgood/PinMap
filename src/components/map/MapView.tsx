@@ -6,7 +6,8 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useLocationStore } from "@/stores/locationStore";
 import { type Location } from "@/apis/location/types";
 import { LocationDetailModal } from "./LocationDetailModal";
-import { SaveLocationModal, type SaveLocationData } from "./SaveLocationModal";
+import { SaveLocationModal } from "./SaveLocationModal";
+import { CompleteModal } from "../modal/CompleteModal";
 
 const FOOD_CATEGORIES = ["한식", "양식", "일식", "중식"];
 const DESSERT_CATEGORIES = ["카페", "디저트"];
@@ -58,9 +59,17 @@ export function MapView({ searchResults = [], selectedLocation = null }: MapView
   const setModalLocationRef = useRef<((loc: Location | null) => void) | null>(null);
   const [modalLocation, setModalLocation] = useState<Location | null>(null);
   const [saveLocation, setSaveLocation] = useState<Location | null>(null);
-  setModalLocationRef.current = setModalLocation;
+  const [isSaveComplete, setIsSaveComplete] = useState(false);
   const { location } = useLocationStore();
   const isInitializedRef = useRef(false);
+
+  // 마커 클릭 시 setState 호출을 위해 ref에 최신 setter 연결
+  setModalLocationRef.current = setModalLocation;
+
+  const handleSaveComplete = () => {
+    setSaveLocation(null);
+    setIsSaveComplete(true);
+  };
 
   // 지도 초기화
   useEffect(() => {
@@ -236,8 +245,6 @@ export function MapView({ searchResults = [], selectedLocation = null }: MapView
     el.style.backgroundPosition = "center";
     el.style.cursor = "pointer";
 
-    const tooltipEl = tooltipRef.current;
-
     el.addEventListener("click", () => {
       setModalLocationRef.current?.(selectedLocation);
     });
@@ -270,11 +277,11 @@ export function MapView({ searchResults = [], selectedLocation = null }: MapView
         <SaveLocationModal
           location={saveLocation}
           onClose={() => setSaveLocation(null)}
-          onSubmit={(data: SaveLocationData) => {
-            console.log("저장 데이터:", data);
-            setSaveLocation(null);
-          }}
+          onComplete={handleSaveComplete}
         />
+      )}
+      {isSaveComplete && (
+        <CompleteModal isOpen={isSaveComplete} onClose={() => setIsSaveComplete(false)} />
       )}
     </>
   );

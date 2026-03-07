@@ -1,37 +1,37 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Location } from "@/apis/location/types";
+import { type Location } from "@/apis/location/types";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { stripHtmlTags } from "@/lib/utils";
 import Image from "next/image";
-import { Input } from "../ui/Input";
+import { type NewSavedLocation } from "@/db/schema";
+import { useAuthStore } from "@/stores/authStore";
+import { useSaveLocation, useUploadLocationImages } from "@/apis/location/hooks";
 
 const SAVE_CATEGORIES = ["맛집", "카페", "관광지", "쇼핑", "기타"] as const;
 type SaveCategory = (typeof SAVE_CATEGORIES)[number];
 
-export interface SaveLocationData {
-  rating: number;
-  images: File[];
-  memo: string;
-  category: SaveCategory;
-  review: string;
+const DEFAULT_ERROR_MESSAGE = "저장 중 오류가 발생했습니다.";
+
+function getErrorMessage(err: unknown): string {
+  if (err && typeof err === "object" && "response" in err) {
+    const data = (err as { response?: { data?: { message?: string } } }).response?.data;
+    if (typeof data?.message === "string" && data.message) return data.message;
+  }
+  return err instanceof Error ? err.message : DEFAULT_ERROR_MESSAGE;
 }
+
+export type SaveLocationData = NewSavedLocation;
 
 interface SaveLocationModalProps {
   location: Location;
   onClose: () => void;
-  onSubmit: (data: SaveLocationData) => void;
+  onComplete: () => void;
 }
 
-function StarRating({
-  value,
-  onChange,
-}: {
-  value: number;
-  onChange: (v: number) => void;
-}) {
+function StarRating({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const [hovered, setHovered] = useState(0);
 
   return (
@@ -156,22 +156,59 @@ function ImageUploader({
   );
 }
 
-export function SaveLocationModal({
-  location,
-  onClose,
-  onSubmit,
-}: SaveLocationModalProps) {
+export function SaveLocationModal({ location, onClose, onComplete }: SaveLocationModalProps) {
   const [rating, setRating] = useState(0);
   const [images, setImages] = useState<File[]>([]);
   const [memo, setMemo] = useState("");
   const [category, setCategory] = useState<SaveCategory>("맛집");
   const [review, setReview] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const { user } = useAuthStore();
+  const { mutateAsync: uploadImages } = useUploadLocationImages();
+  const { mutate: saveLocation } = useSaveLocation();
 
   const plainTitle = stripHtmlTags(location.title) || "위치 정보";
   const address = location.roadAddress || location.address || "";
 
-  const handleSubmit = () => {
-    onSubmit({ rating, images, memo, category, review });
+  const handleSubmit = async () => {
+    if (!user?.uuid) {
+      setSubmitError("로그인이 필요합니다.");
+      return;
+    }
+    setIsSubmitting(true);
+    setSubmitError(null);
+    try {
+      const imageUrls = images.length > 0 ? await uploadImages(images) : [];
+
+      const lng = Number(location.mapx) / 1e7;
+      const lat = Number(location.mapy) / 1e7;
+      const payload: NewSavedLocation = {
+        userId: user.uuid,
+        latitude: lat,
+        longitude: lng,
+        title: plainTitle,
+        roadAddress: address || undefined,
+        category,
+        rating,
+        images: imageUrls,
+        memo: memo.trim() || undefined,
+        review: review.trim() || undefined,
+        link: location.link || undefined,
+      };
+      saveLocation(payload, {
+        onSuccess: () => {
+          onComplete();
+        },
+        onError: (err) => {
+          setSubmitError(getErrorMessage(err));
+        },
+      });
+    } catch (err) {
+      setSubmitError(getErrorMessage(err));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -193,81 +230,78 @@ export function SaveLocationModal({
             </div>
           </div>
           <h2 className="text-[20px] font-bold text-gray-800">{plainTitle}</h2>
-          {address && (
-            <p className="mt-1 text-sm leading-relaxed text-gray-500">
-              {address}
-            </p>
-          )}
+          {address && <p className="mt-1 text-sm leading-relaxed text-gray-800">{address}</p>}
         </div>
 
         {/* 별점 ~ 나만의 리뷰: 스크롤 영역 */}
         <div className="mt-5 min-h-0 flex-1 overflow-y-auto pr-1">
-        <div className="flex w-full flex-col gap-5">
-          {/* 1. 별점 */}
-          <fieldset className="flex w-full flex-col items-start">
-            <legend className="mb-1.5 text-sm font-medium text-gray-700">
-              별점
-            </legend>
-            <StarRating value={rating} onChange={setRating} />
-          </fieldset>
+          <div className="flex w-full flex-col gap-5">
+            {/* 1. 별점 */}
+            <fieldset className="flex w-full flex-col items-start">
+              <legend className="mb-1.5 text-sm font-medium text-gray-700">별점</legend>
+              <StarRating value={rating} onChange={setRating} />
+            </fieldset>
 
-          {/* 2. 이미지 */}
-          <fieldset className="flex w-full flex-col items-start">
-            <legend className="mb-1.5 text-sm font-medium text-gray-700">
-              이미지
-            </legend>
-            <ImageUploader images={images} onChange={setImages} />
-          </fieldset>
+            {/* 2. 이미지 */}
+            <fieldset className="flex w-full flex-col items-start">
+              <legend className="mb-1.5 text-sm font-medium text-gray-700">이미지</legend>
+              <ImageUploader images={images} onChange={setImages} />
+            </fieldset>
 
-          {/* 3. 카테고리 */}
-          <fieldset className="flex w-full flex-col items-start">
-            <legend className="mb-1.5 text-sm font-medium text-gray-700">
-              카테고리
-            </legend>
-            <div className="flex flex-wrap gap-2">
-              {SAVE_CATEGORIES.map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setCategory(cat)}
-                  className={`rounded-xl px-3.5 py-1.5 text-sm font-medium border border-[#6f62cb]/50 transition-all ${
-                    category === cat
-                      ? "bg-[#6f62cb] text-white"
-                      : "bg-transparent text-gray-600 hover:bg-[#6f62cb]/10 hover:text-[#6f62cb]"
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
+            {/* 3. 카테고리 */}
+            <fieldset className="flex w-full flex-col items-start">
+              <legend className="mb-1.5 text-sm font-medium text-gray-700">카테고리</legend>
+              <div className="flex flex-wrap gap-2">
+                {SAVE_CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setCategory(cat)}
+                    className={`rounded-xl px-3.5 py-1.5 text-sm font-medium border border-[#6f62cb]/50 transition-all ${
+                      category === cat
+                        ? "bg-[#6f62cb] text-white"
+                        : "bg-transparent text-gray-600 hover:bg-[#6f62cb]/10 hover:text-[#6f62cb]"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+
+            {/* 4. 나만의 리뷰 */}
+            <div className="flex w-full flex-col">
+              <label
+                htmlFor="save-review"
+                className="mb-1.5 block text-sm font-medium text-gray-700"
+              >
+                나만의 리뷰
+              </label>
+              <textarea
+                id="save-review"
+                value={review}
+                onChange={(e) => setReview(e.target.value)}
+                placeholder="이 장소에 대한 나만의 리뷰를 작성해보세요"
+                rows={3}
+                className="w-full resize-none rounded-lg border border-[#6f62cb]/50 bg-transparent px-4 py-2.5 text-base leading-relaxed text-gray-900 placeholder:text-gray-400 transition-all duration-200 hover:border-purple-400 focus:border-[#6f62cb] focus:outline-none"
+              />
             </div>
-          </fieldset>
-
-          {/* 4. 나만의 리뷰 */}
-          <div className="flex w-full flex-col">
-            <label
-              htmlFor="save-review"
-              className="mb-1.5 block text-sm font-medium text-gray-700"
-            >
-              나만의 리뷰
-            </label>
-            <textarea
-              id="save-review"
-              value={review}
-              onChange={(e) => setReview(e.target.value)}
-              placeholder="이 장소에 대한 나만의 리뷰를 작성해보세요"
-              rows={3}
-              className="w-full resize-none rounded-lg border border-[#6f62cb]/50 bg-transparent px-4 py-2.5 text-base leading-relaxed text-gray-900 placeholder:text-gray-400 transition-all duration-200 hover:border-purple-400 focus:border-[#6f62cb] focus:outline-none"
-            />
           </div>
         </div>
-        </div>
       </div>
+
+      {submitError && (
+        <p className="mt-3 text-sm text-red-600" role="alert">
+          {submitError}
+        </p>
+      )}
 
       {/* 하단 버튼 */}
       <div className="mt-5 flex gap-3">
         <Button
           variant="secondary"
           onClick={onClose}
+          disabled={isSubmitting}
           className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold"
         >
           취소
@@ -275,9 +309,10 @@ export function SaveLocationModal({
         <Button
           variant="primary"
           onClick={handleSubmit}
+          disabled={isSubmitting}
           className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold"
         >
-          저장하기
+          {isSubmitting ? "저장 중…" : "저장하기"}
         </Button>
       </div>
     </Modal>

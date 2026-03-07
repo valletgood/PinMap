@@ -2,6 +2,7 @@ import { type ApiResponse } from "@/lib/api-response";
 import { axiosInstance } from "../axios";
 import { type Location } from "./types";
 import { normalizeResponse } from "../types";
+import type { NewSavedLocation } from "@/db/schema";
 
 /**
  * Location API
@@ -18,5 +19,20 @@ export const locationApi = {
       `/api/location/location-list?query=${encodeURIComponent(query)}`
     );
     return normalizeResponse<ApiResponse<LocationSearchResult>>(response).data!;
+  },
+  saveLocation: async (data: NewSavedLocation): Promise<ApiResponse> => {
+    const response = await axiosInstance.post<ApiResponse>(`/api/location/save-location`, data);
+    return response.data;
+  },
+  /** 이미지 파일들을 업로드하고 공개 URL 배열 반환 */
+  saveImage: async (files: File[]): Promise<ApiResponse<{ urls: string[] }>> => {
+    const formData = new FormData();
+    files.forEach((file) => formData.append("images", file));
+    const response = await axiosInstance.post<ApiResponse<{ urls: string[] }>>(
+      "/api/location/upload-image",
+      formData,
+      { withCredentials: true }
+    );
+    return response.data;
   },
 };

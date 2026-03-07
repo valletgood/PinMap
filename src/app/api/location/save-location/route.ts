@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     const [inserted] = await db
       .insert(savedLocation)
       .values({
-        userId: payload.userId,
+        userId: payload.userUuid,
         latitude: lat,
         longitude: lng,
         title: title.trim(),

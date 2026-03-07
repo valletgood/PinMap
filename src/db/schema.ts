@@ -9,6 +9,7 @@ import {
   integer,
   doublePrecision,
   jsonb,
+  uuid,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -22,6 +23,7 @@ export const genderEnum = pgEnum("gender", ["male", "female", "other"]);
  */
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
+  uuid: uuid("uuid").defaultRandom().notNull().unique(),
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
   password: text("password").notNull(), // 해시된 비밀번호 저장
@@ -40,9 +42,9 @@ export type NewUser = typeof users.$inferInsert;
  */
 export const savedLocation = pgTable("saved_location", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id")
+  userId: uuid("user_id")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
+    .references(() => users.uuid, { onDelete: "cascade" }),
   latitude: doublePrecision("latitude").notNull(),
   longitude: doublePrecision("longitude").notNull(),
   title: text("title").notNull(),
