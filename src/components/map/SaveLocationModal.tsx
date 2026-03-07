@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { type Location } from "@/apis/location/types";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
@@ -77,37 +77,68 @@ function ImageUploader({
   onChange: (files: File[]) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const urlsToRevokeRef = useRef<string[]>([]);
 
-  const handleAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-    onChange([...images, ...Array.from(files)]);
-    if (inputRef.current) inputRef.current.value = "";
-  };
+  useEffect(() => {
+    urlsToRevokeRef.current.forEach((url) => URL.revokeObjectURL(url));
+    urlsToRevokeRef.current = [];
 
-  const handleRemove = (index: number) => {
-    onChange(images.filter((_, i) => i !== index));
-  };
+    if (images.length === 0) {
+      setPreviewUrls([]);
+      return;
+    }
+
+    const urls = images.map((file) => URL.createObjectURL(file));
+    urlsToRevokeRef.current = urls;
+    setPreviewUrls(urls);
+
+    return () => {
+      urlsToRevokeRef.current.forEach((url) => URL.revokeObjectURL(url));
+      urlsToRevokeRef.current = [];
+    };
+  }, [images]);
+
+  const handleAdd = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (!files) return;
+      onChange([...images, ...Array.from(files)]);
+      if (inputRef.current) inputRef.current.value = "";
+    },
+    [images, onChange]
+  );
+
+  const handleRemove = useCallback(
+    (index: number) => {
+      onChange(images.filter((_, i) => i !== index));
+    },
+    [images, onChange]
+  );
 
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-2">
-        {images.map((file, i) => (
+        {previewUrls.map((url, i) => (
           <div
-            key={`${file.name}-${i}`}
+            key={url}
             className="group relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-gray-200"
           >
-            <Image
-              src={URL.createObjectURL(file)}
-              alt={file.name}
+            {/* blob 미리보기: createObjectURL 캐시로 매 렌더 생성 방지, next/image 대신 img로 모바일 성능 개선 */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={url}
+              alt={images[i]?.name ?? `미리보기 ${i + 1}`}
+              className="h-full w-full object-cover"
               width={64}
               height={64}
-              className="h-full w-full object-cover"
+              loading="lazy"
             />
             <Button
               variant="ghost"
               onClick={() => handleRemove(i)}
               className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100"
+              type="button"
               aria-label="삭제"
             >
               <svg
@@ -161,7 +192,6 @@ export function SaveLocationModal({ location, onClose, onComplete }: SaveLocatio
   const queryClient = useQueryClient();
   const [rating, setRating] = useState(0);
   const [images, setImages] = useState<File[]>([]);
-  const [memo, setMemo] = useState("");
   const [category, setCategory] = useState<SaveCategory>("맛집");
   const [review, setReview] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -194,7 +224,6 @@ export function SaveLocationModal({ location, onClose, onComplete }: SaveLocatio
         category,
         rating,
         images: imageUrls,
-        memo: memo.trim() || undefined,
         review: review.trim() || undefined,
         link: location.link || undefined,
       };
