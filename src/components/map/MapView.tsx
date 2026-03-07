@@ -11,7 +11,12 @@ import { SaveLocationModal } from "./SaveLocationModal";
 import { CompleteModal } from "../modal/CompleteModal";
 import { Spinner } from "@/components/ui/Spinner";
 import {
-  applyMarkerSize,
+  applyScaleToMarkers,
+  createFlyToOptions,
+  createMarkerElement,
+  DEFAULT_MAP_CENTER,
+  FLY_TO_DURATION_SLOW,
+  FLY_TO_ZOOM,
   getMarkerIconUrl,
   getMarkerScale,
   MARKER_ICONS,
@@ -32,12 +37,22 @@ interface MapViewProps {
    * 저장된 장소 목록 (마커는 map_love.png)
    */
   savedLocations?: SavedLocation[];
+  /**
+   * 저장 목록 패널에서 선택한 장소 (지도 flyTo + 모달 오픈 후 클리어)
+   */
+  savedLocationToOpen?: SavedLocation | null;
+  /**
+   * savedLocationToOpen 처리 후 호출 (상위에서 state 클리어용)
+   */
+  onClearedSavedLocationToOpen?: () => void;
 }
 
 export function MapView({
   searchResults = [],
   selectedLocation = null,
   savedLocations = [],
+  savedLocationToOpen = null,
+  onClearedSavedLocationToOpen,
 }: MapViewProps) {
   const mapRef = useRef<maplibregl.Map | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -72,20 +87,18 @@ export function MapView({
     // 초기 위치는 기본값(서울) 또는 location이 있으면 사용
     const initialCenter: [number, number] = location
       ? [location.lng, location.lat]
-      : [126.978, 37.5665];
+      : DEFAULT_MAP_CENTER;
 
     mapRef.current = new maplibregl.Map({
       container: containerRef.current,
       style: `https://api.maptiler.com/maps/019cc3b6-4ea1-78b9-82c0-189623ed6346/style.json?key=${key}`,
       center: initialCenter,
-      zoom: 16,
+      zoom: FLY_TO_ZOOM,
       pitch: 0,
       bearing: 0,
       attributionControl: false,
       interactive: true,
     });
-
-    mapRef.current.addControl(new maplibregl.NavigationControl(), "bottom-right");
 
     // 지도가 로드된 후 초기화 완료 표시 (저장된 장소 마커 effect가 다시 실행되도록 state 갱신)
     mapRef.current.on("load", () => {
@@ -105,16 +118,9 @@ export function MapView({
       const map = mapRef.current;
       if (!map) return;
       tooltipRef.current?.classList.remove("is-visible");
-      const zoom = map.getZoom();
-      const scale = getMarkerScale(zoom);
-      markersRef.current.forEach((marker) => {
-        const el = marker.getElement();
-        if (el) applyMarkerSize(el, scale);
-      });
-      savedMarkersRef.current.forEach((marker) => {
-        const el = marker.getElement();
-        if (el) applyMarkerSize(el, scale);
-      });
+      const scale = getMarkerScale(map.getZoom());
+      applyScaleToMarkers(markersRef.current, scale);
+      applyScaleToMarkers(savedMarkersRef.current, scale);
     };
 
     mapRef.current.on("zoom", updateMarkerSizes);
@@ -160,12 +166,9 @@ export function MapView({
     }
 
     // 부드러운 애니메이션으로 중심 이동
-    mapRef.current.flyTo({
-      center: [location.lng, location.lat],
-      zoom: 16,
-      duration: 1000,
-      essential: true,
-    });
+    mapRef.current.flyTo(
+      createFlyToOptions([location.lng, location.lat], { duration: FLY_TO_DURATION_SLOW })
+    );
   }, [location]);
 
   // 검색 결과에 마커 추가
@@ -179,6 +182,9 @@ export function MapView({
     // 검색 결과가 없으면 종료
     if (!searchResults || searchResults.length === 0) return;
 
+    const map = mapRef.current!;
+    const scale = getMarkerScale(map.getZoom());
+
     // 각 검색 결과에 마커 추가 (저장된 장소는 saved 레이어에서만 그림 → 여기서는 제외하고 saved 마커 아이콘만 사용)
     searchResults.forEach((loc) => {
       const lng = Number(loc.mapx) / 1e7;
@@ -186,27 +192,18 @@ export function MapView({
       const isSaved = !!findSavedMatch(loc, savedLocations);
       const iconUrl = isSaved ? MARKER_ICONS.saved : getMarkerIconUrl(loc.category);
 
-      // 마커 엘리먼트 생성
-      const el = document.createElement("div");
-      el.className = "marker";
-      applyMarkerSize(el, getMarkerScale(mapRef.current!.getZoom()));
-      el.style.backgroundImage = `url(${iconUrl})`;
-      el.style.backgroundSize = "contain";
-      el.style.backgroundRepeat = "no-repeat";
-      el.style.backgroundPosition = "center";
-      el.style.cursor = "pointer";
-
-      el.addEventListener("click", () => {
-        setModalDetailRef.current?.(getModalDetailForLocation(loc, savedLocations));
+      const el = createMarkerElement({
+        iconUrl,
+        scale,
+        onClick: () => {
+          mapRef.current?.flyTo(createFlyToOptions([lng, lat]));
+          setModalDetailRef.current?.(getModalDetailForLocation(loc, savedLocations));
+        },
       });
 
-      const marker = new maplibregl.Marker({
-        element: el,
-        anchor: "bottom",
-      })
+      const marker = new maplibregl.Marker({ element: el, anchor: "bottom" })
         .setLngLat([lng, lat])
-        .addTo(mapRef.current!);
-
+        .addTo(map);
       markersRef.current.push(marker);
     });
   }, [searchResults, savedLocations]);
@@ -220,41 +217,27 @@ export function MapView({
   useEffect(() => {
     if (!mapRef.current || !selectedLocation || !isInitializedRef.current) return;
 
+    const map = mapRef.current;
     const lng = Number(selectedLocation.mapx) / 1e7;
     const lat = Number(selectedLocation.mapy) / 1e7;
     const iconUrl = findSavedMatch(selectedLocation, savedLocations)
       ? MARKER_ICONS.saved
       : getMarkerIconUrl(selectedLocation.category);
 
-    mapRef.current.flyTo({
-      center: [lng, lat],
-      zoom: 16,
-      duration: 600,
-      essential: true,
+    map.flyTo(createFlyToOptions([lng, lat]));
+
+    const el = createMarkerElement({
+      iconUrl,
+      scale: getMarkerScale(map.getZoom()),
+      onClick: () => {
+        mapRef.current?.flyTo(createFlyToOptions([lng, lat]));
+        setModalDetailRef.current?.(getModalDetailForLocation(selectedLocation, savedLocations));
+      },
     });
 
-    // 마커 엘리먼트 생성
-    const el = document.createElement("div");
-    el.className = "marker";
-    applyMarkerSize(el, getMarkerScale(mapRef.current.getZoom()));
-    el.style.backgroundImage = `url(${iconUrl})`;
-    el.style.backgroundSize = "contain";
-    el.style.backgroundRepeat = "no-repeat";
-    el.style.backgroundPosition = "center";
-    el.style.cursor = "pointer";
-
-    el.addEventListener("click", () => {
-      setModalDetailRef.current?.(getModalDetailForLocation(selectedLocation, savedLocations));
-    });
-
-    // 마커 생성 및 추가
-    const marker = new maplibregl.Marker({
-      element: el,
-      anchor: "bottom",
-    })
+    const marker = new maplibregl.Marker({ element: el, anchor: "bottom" })
       .setLngLat([lng, lat])
-      .addTo(mapRef.current!);
-
+      .addTo(map);
     markersRef.current.push(marker);
   }, [selectedLocation, savedLocations]);
 
@@ -276,17 +259,13 @@ export function MapView({
     savedLocations.forEach((item) => {
       const lng = Number(item.longitude);
       const lat = Number(item.latitude);
-      const el = document.createElement("div");
-      el.className = "marker";
-      applyMarkerSize(el, scale);
-      el.style.backgroundImage = `url(${iconUrl})`;
-      el.style.backgroundSize = "contain";
-      el.style.backgroundRepeat = "no-repeat";
-      el.style.backgroundPosition = "center";
-      el.style.cursor = "pointer";
-
-      el.addEventListener("click", () => {
-        setModalDetailRef.current?.({ type: "saved", location: item });
+      const el = createMarkerElement({
+        iconUrl,
+        scale,
+        onClick: () => {
+          map.flyTo(createFlyToOptions([lng, lat]));
+          setModalDetailRef.current?.({ type: "saved", location: item });
+        },
       });
 
       const marker = new maplibregl.Marker({ element: el, anchor: "bottom" })
@@ -295,6 +274,16 @@ export function MapView({
       savedMarkersRef.current.push(marker);
     });
   }, [savedLocations, isMapReady]);
+
+  // 저장 목록 패널에서 장소 선택 시: 해당 좌표로 flyTo 후 saved 모달 오픈
+  useEffect(() => {
+    if (!savedLocationToOpen || !mapRef.current || !isInitializedRef.current) return;
+    const lng = Number(savedLocationToOpen.longitude);
+    const lat = Number(savedLocationToOpen.latitude);
+    mapRef.current.flyTo(createFlyToOptions([lng, lat]));
+    setModalDetail({ type: "saved", location: savedLocationToOpen });
+    onClearedSavedLocationToOpen?.();
+  }, [savedLocationToOpen, onClearedSavedLocationToOpen]);
 
   return (
     <>
