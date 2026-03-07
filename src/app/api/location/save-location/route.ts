@@ -9,7 +9,7 @@ import { verifyToken } from "@/lib/jwt";
  * 장소 저장 API
  * POST /api/location/save-location
  *
- * Body: latitude, longitude, title, roadAddress?, rating, images?, memo?, category, review?, link?
+ * Body: latitude, longitude, title, roadAddress?, rating, images?, category, review?, link?
  * 인증: 쿠키 auth_token (필수)
  */
 export async function POST(request: NextRequest) {
@@ -22,18 +22,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const {
-      latitude,
-      longitude,
-      title,
-      roadAddress,
-      rating,
-      images,
-      memo,
-      category,
-      review,
-      link,
-    } = body;
+    const { latitude, longitude, title, roadAddress, rating, images, category, review, link } =
+      body;
 
     if (
       latitude == null ||
@@ -76,7 +66,6 @@ export async function POST(request: NextRequest) {
             : undefined,
         rating: safeRating,
         images: imageList,
-        memo: memo != null && typeof memo === "string" && memo.trim() ? memo.trim() : undefined,
         category: category.trim(),
         review:
           review != null && typeof review === "string" && review.trim() ? review.trim() : undefined,

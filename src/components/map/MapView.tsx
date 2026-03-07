@@ -6,28 +6,12 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useLocationStore } from "@/stores/locationStore";
 import { type Location } from "@/apis/location/types";
 import type { SavedLocation } from "@/db/schema";
-import { LocationDetailModal } from "./LocationDetailModal";
+import { LocationDetailModal, type ModalDetail } from "./LocationDetailModal";
 import { SaveLocationModal } from "./SaveLocationModal";
 import { CompleteModal } from "../modal/CompleteModal";
 import { Spinner } from "@/components/ui/Spinner";
 import { applyMarkerSize, getMarkerIconUrl, getMarkerScale, MARKER_ICONS } from "@/lib/mapUtil";
 
-/** 저장된 장소를 LocationDetailModal용 Location 형태로 변환 */
-function savedToLocation(item: SavedLocation): Location {
-  const lng = Number(item.longitude);
-  const lat = Number(item.latitude);
-  return {
-    title: item.title,
-    link: item.link ?? "",
-    category: item.category,
-    description: item.review ?? "",
-    telephone: "",
-    address: item.roadAddress ?? "",
-    roadAddress: item.roadAddress ?? "",
-    mapx: String(Math.round(lng * 1e7)),
-    mapy: String(Math.round(lat * 1e7)),
-  };
-}
 
 interface MapViewProps {
   /**
@@ -54,16 +38,15 @@ export function MapView({
   const markersRef = useRef<maplibregl.Marker[]>([]);
   const savedMarkersRef = useRef<maplibregl.Marker[]>([]);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
-  const setModalLocationRef = useRef<((loc: Location | null) => void) | null>(null);
-  const [modalLocation, setModalLocation] = useState<Location | null>(null);
+  const setModalDetailRef = useRef<((detail: ModalDetail) => void) | null>(null);
+  const [modalDetail, setModalDetail] = useState<ModalDetail>(null);
   const [saveLocation, setSaveLocation] = useState<Location | null>(null);
   const [isSaveComplete, setIsSaveComplete] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
   const { location } = useLocationStore();
   const isInitializedRef = useRef(false);
 
-  // 마커 클릭 시 setState 호출을 위해 ref에 최신 setter 연결
-  setModalLocationRef.current = setModalLocation;
+  setModalDetailRef.current = setModalDetail;
 
   const handleSaveComplete = () => {
     setSaveLocation(null);
@@ -208,7 +191,7 @@ export function MapView({
       el.style.cursor = "pointer";
 
       el.addEventListener("click", () => {
-        setModalLocationRef.current?.(loc);
+        setModalDetailRef.current?.({ type: "search", location: loc });
       });
 
       // 마커 생성 및 추가
@@ -248,7 +231,7 @@ export function MapView({
     el.style.cursor = "pointer";
 
     el.addEventListener("click", () => {
-      setModalLocationRef.current?.(selectedLocation);
+      setModalDetailRef.current?.({ type: "search", location: selectedLocation });
     });
 
     // 마커 생성 및 추가
@@ -290,7 +273,7 @@ export function MapView({
       el.style.cursor = "pointer";
 
       el.addEventListener("click", () => {
-        setModalLocationRef.current?.(savedToLocation(item));
+        setModalDetailRef.current?.({ type: "saved", location: item });
       });
 
       const marker = new maplibregl.Marker({ element: el, anchor: "bottom" })
@@ -313,14 +296,18 @@ export function MapView({
           </div>
         )}
       </div>
-      {modalLocation && (
+      {modalDetail && (
         <LocationDetailModal
-          location={modalLocation}
-          onClose={() => setModalLocation(null)}
-          onSave={() => {
-            setSaveLocation(modalLocation);
-            setModalLocation(null);
-          }}
+          detail={modalDetail}
+          onClose={() => setModalDetail(null)}
+          onSave={
+            modalDetail.type === "search"
+              ? () => {
+                  setSaveLocation(modalDetail.location);
+                  setModalDetail(null);
+                }
+              : undefined
+          }
         />
       )}
       {saveLocation && (

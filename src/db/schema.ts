@@ -38,7 +38,7 @@ export type NewUser = typeof users.$inferInsert;
 
 /**
  * 저장한 장소 테이블 스키마
- * 사용자가 저장한 장소 정보(위도·경도·제목·주소·별점·이미지·메모·카테고리·리뷰·바로가기)를 저장합니다.
+ * 사용자가 저장한 장소 정보(위도·경도·제목·주소·별점·이미지·카테고리·리뷰·바로가기)를 저장합니다.
  */
 export const savedLocation = pgTable("saved_location", {
   id: serial("id").primaryKey(),
@@ -51,7 +51,6 @@ export const savedLocation = pgTable("saved_location", {
   roadAddress: text("road_address"),
   rating: integer("rating").notNull().default(0),
   images: jsonb("images").$type<string[]>().default([]),
-  memo: text("memo"),
   category: text("category").notNull(),
   review: text("review"),
   link: text("link"),
