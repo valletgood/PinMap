@@ -1,4 +1,5 @@
 import { type NextRequest } from "next/server";
+import { eq, desc } from "drizzle-orm";
 import { db } from "@/db";
 import { savedLocation } from "@/db/schema";
 import { successResponse, errorResponse, ErrorCode } from "@/lib/api-response";
@@ -89,5 +90,32 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("장소 저장 API 오류:", error);
     return errorResponse(ErrorCode.INTERNAL_SERVER_ERROR, "장소 저장에 실패했습니다.");
+  }
+}
+
+/**
+ * 저장된 장소 목록 조회 API
+ * GET /api/location/save-location
+ * 인증: 쿠키 auth_token (필수)
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const token = request.cookies.get("auth_token")?.value;
+    const payload = token ? verifyToken(token) : null;
+
+    if (!payload) {
+      return errorResponse(ErrorCode.UNAUTHORIZED, "로그인이 필요합니다.");
+    }
+
+    const list = await db
+      .select()
+      .from(savedLocation)
+      .where(eq(savedLocation.userId, payload.userUuid))
+      .orderBy(desc(savedLocation.createdAt));
+
+    return successResponse("저장된 장소 목록입니다.", list);
+  } catch (error) {
+    console.error("장소 조회 API 오류:", error);
+    return errorResponse(ErrorCode.INTERNAL_SERVER_ERROR, "장소 조회에 실패했습니다.");
   }
 }

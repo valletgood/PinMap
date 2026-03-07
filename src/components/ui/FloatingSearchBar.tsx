@@ -17,7 +17,7 @@ import { type Location } from "@/apis/location/types";
  * ```tsx
  * <FloatingSearchBar
  *   placeholder="맛집을 검색하세요"
- *   onSearch={(query) => console.log(query)}
+ *   onSubmit={(query) => console.log(query)}
  * />
  * ```
  */
@@ -26,10 +26,6 @@ interface FloatingSearchBarProps {
    * 검색 입력 필드의 placeholder 텍스트
    */
   placeholder?: string;
-  /**
-   * 검색어가 변경될 때 호출되는 콜백 함수
-   */
-  onSearch?: (query: string) => void;
   /**
    * 검색어가 제출될 때 호출되는 콜백 함수
    */
@@ -59,7 +55,6 @@ interface FloatingSearchBarProps {
 export const FloatingSearchBar = React.memo<FloatingSearchBarProps>(
   ({
     placeholder = "맛집을 검색하세요",
-    onSearch,
     onSubmit,
     searchResults = [],
     onLocationSelect,
@@ -72,7 +67,6 @@ export const FloatingSearchBar = React.memo<FloatingSearchBarProps>(
 
     const handleChange = (value: string) => {
       setQuery(value);
-      onSearch?.(value);
     };
 
     const handleSubmit = () => {

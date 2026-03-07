@@ -2,7 +2,7 @@ import { type ApiResponse } from "@/lib/api-response";
 import { axiosInstance } from "../axios";
 import { type Location } from "./types";
 import { normalizeResponse } from "../types";
-import type { NewSavedLocation } from "@/db/schema";
+import type { NewSavedLocation, SavedLocation } from "@/db/schema";
 
 /**
  * Location API
@@ -14,6 +14,16 @@ export interface LocationSearchResult {
 }
 
 export const locationApi = {
+  /** 저장된 장소 목록 조회 (로그인 사용자) */
+  getSavedLocations: async (): Promise<ApiResponse<SavedLocation[]>> => {
+    const response = await axiosInstance.get<ApiResponse<SavedLocation[]>>(
+      "/api/location/save-location",
+      {
+        withCredentials: true,
+      }
+    );
+    return normalizeResponse<ApiResponse<SavedLocation[]>>(response);
+  },
   getLocationSearch: async (query: string): Promise<LocationSearchResult> => {
     const response = await axiosInstance.get<ApiResponse<LocationSearchResult>>(
       `/api/location/location-list?query=${encodeURIComponent(query)}`

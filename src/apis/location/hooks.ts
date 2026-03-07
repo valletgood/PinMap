@@ -13,6 +13,14 @@ export const useSearchLocation = (query: string, enabled = true) => {
   });
 };
 
+export const useSavedLocations = (enabled = true) => {
+  return useQuery({
+    queryKey: ["location", "saved"],
+    queryFn: async () => locationApi.getSavedLocations(),
+    enabled,
+  });
+};
+
 export const useSaveLocation = () => {
   return useMutation({
     mutationFn: (data: NewSavedLocation) => locationApi.saveLocation(data),

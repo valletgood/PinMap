@@ -9,6 +9,7 @@ import Image from "next/image";
 import { type NewSavedLocation } from "@/db/schema";
 import { useAuthStore } from "@/stores/authStore";
 import { useSaveLocation, useUploadLocationImages } from "@/apis/location/hooks";
+import { useQueryClient } from "@tanstack/react-query";
 
 const SAVE_CATEGORIES = ["맛집", "카페", "관광지", "쇼핑", "기타"] as const;
 type SaveCategory = (typeof SAVE_CATEGORIES)[number];
@@ -157,6 +158,7 @@ function ImageUploader({
 }
 
 export function SaveLocationModal({ location, onClose, onComplete }: SaveLocationModalProps) {
+  const queryClient = useQueryClient();
   const [rating, setRating] = useState(0);
   const [images, setImages] = useState<File[]>([]);
   const [memo, setMemo] = useState("");
@@ -199,6 +201,7 @@ export function SaveLocationModal({ location, onClose, onComplete }: SaveLocatio
       saveLocation(payload, {
         onSuccess: () => {
           onComplete();
+          queryClient.invalidateQueries({ queryKey: ["location", "saved"] });
         },
         onError: (err) => {
           setSubmitError(getErrorMessage(err));

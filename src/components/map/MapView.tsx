@@ -5,39 +5,28 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useLocationStore } from "@/stores/locationStore";
 import { type Location } from "@/apis/location/types";
+import type { SavedLocation } from "@/db/schema";
 import { LocationDetailModal } from "./LocationDetailModal";
 import { SaveLocationModal } from "./SaveLocationModal";
 import { CompleteModal } from "../modal/CompleteModal";
+import { Spinner } from "@/components/ui/Spinner";
+import { applyMarkerSize, getMarkerIconUrl, getMarkerScale, MARKER_ICONS } from "@/lib/mapUtil";
 
-const FOOD_CATEGORIES = ["한식", "양식", "일식", "중식"];
-const DESSERT_CATEGORIES = ["카페", "디저트"];
-
-const MARKER_ICONS = {
-  food: "/icons/map_food.png",
-  dessert: "/icons/map_dessert.png",
-  default: "/icons/map_default.png",
-} as const;
-
-const MARKER_SIZE = { width: 63, height: 81 }; // 42x54 기준 1.5배
-const REF_ZOOM = 16; // 이 줌 레벨에서 scale = 1
-const MIN_SCALE = 0.6;
-const MAX_SCALE = 1.8;
-
-function getMarkerScale(zoom: number): number {
-  const scale = Math.pow(2, (zoom - REF_ZOOM) * 0.35);
-  return Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale));
-}
-
-function applyMarkerSize(el: HTMLElement, scale: number): void {
-  el.style.width = `${MARKER_SIZE.width * scale}px`;
-  el.style.height = `${MARKER_SIZE.height * scale}px`;
-}
-
-function getMarkerIconUrl(category: string): string {
-  const normalized = category?.trim() ?? "";
-  if (FOOD_CATEGORIES.some((c) => normalized.includes(c))) return MARKER_ICONS.food;
-  if (DESSERT_CATEGORIES.some((c) => normalized.includes(c))) return MARKER_ICONS.dessert;
-  return MARKER_ICONS.default;
+/** 저장된 장소를 LocationDetailModal용 Location 형태로 변환 */
+function savedToLocation(item: SavedLocation): Location {
+  const lng = Number(item.longitude);
+  const lat = Number(item.latitude);
+  return {
+    title: item.title,
+    link: item.link ?? "",
+    category: item.category,
+    description: item.review ?? "",
+    telephone: "",
+    address: item.roadAddress ?? "",
+    roadAddress: item.roadAddress ?? "",
+    mapx: String(Math.round(lng * 1e7)),
+    mapy: String(Math.round(lat * 1e7)),
+  };
 }
 
 interface MapViewProps {
@@ -49,17 +38,27 @@ interface MapViewProps {
    * 선택된 장소
    */
   selectedLocation?: Location | null;
+  /**
+   * 저장된 장소 목록 (마커는 map_love.png)
+   */
+  savedLocations?: SavedLocation[];
 }
 
-export function MapView({ searchResults = [], selectedLocation = null }: MapViewProps) {
+export function MapView({
+  searchResults = [],
+  selectedLocation = null,
+  savedLocations = [],
+}: MapViewProps) {
   const mapRef = useRef<maplibregl.Map | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const markersRef = useRef<maplibregl.Marker[]>([]);
+  const savedMarkersRef = useRef<maplibregl.Marker[]>([]);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
   const setModalLocationRef = useRef<((loc: Location | null) => void) | null>(null);
   const [modalLocation, setModalLocation] = useState<Location | null>(null);
   const [saveLocation, setSaveLocation] = useState<Location | null>(null);
   const [isSaveComplete, setIsSaveComplete] = useState(false);
+  const [isMapReady, setIsMapReady] = useState(false);
   const { location } = useLocationStore();
   const isInitializedRef = useRef(false);
 
@@ -99,9 +98,10 @@ export function MapView({ searchResults = [], selectedLocation = null }: MapView
 
     mapRef.current.addControl(new maplibregl.NavigationControl(), "bottom-right");
 
-    // 지도가 로드된 후 초기화 완료 표시
+    // 지도가 로드된 후 초기화 완료 표시 (저장된 장소 마커 effect가 다시 실행되도록 state 갱신)
     mapRef.current.on("load", () => {
       isInitializedRef.current = true;
+      setIsMapReady(true);
     });
 
     // 마커 호버용 툴팁 엘리먼트 생성
@@ -122,6 +122,10 @@ export function MapView({ searchResults = [], selectedLocation = null }: MapView
         const el = marker.getElement();
         if (el) applyMarkerSize(el, scale);
       });
+      savedMarkersRef.current.forEach((marker) => {
+        const el = marker.getElement();
+        if (el) applyMarkerSize(el, scale);
+      });
     };
 
     mapRef.current.on("zoom", updateMarkerSizes);
@@ -137,12 +141,14 @@ export function MapView({ searchResults = [], selectedLocation = null }: MapView
       mapRef.current?.off("move", hideTooltipOnMove);
       tooltipRef.current?.remove();
       tooltipRef.current = null;
-      // 기존 마커 제거
       markersRef.current.forEach((marker) => marker.remove());
       markersRef.current = [];
+      savedMarkersRef.current.forEach((marker) => marker.remove());
+      savedMarkersRef.current = [];
       mapRef.current?.remove();
       mapRef.current = null;
       isInitializedRef.current = false;
+      setIsMapReady(false);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -183,10 +189,6 @@ export function MapView({ searchResults = [], selectedLocation = null }: MapView
 
     // 검색 결과가 없으면 종료
     if (!searchResults || searchResults.length === 0) return;
-
-    // SVG 아이콘을 이미지로 로드
-
-    const tooltipEl = tooltipRef.current;
 
     // 각 검색 결과에 마커 추가
     searchResults.forEach((loc) => {
@@ -260,9 +262,57 @@ export function MapView({ searchResults = [], selectedLocation = null }: MapView
     markersRef.current.push(marker);
   }, [selectedLocation]);
 
+  // 저장된 장소 마커 (map_love.png) — 지도 로드 완료(isMapReady) 후 또는 savedLocations 변경 시 실행
+  useEffect(() => {
+    if (!mapRef.current || !isInitializedRef.current || !savedLocations?.length) {
+      savedMarkersRef.current.forEach((m) => m.remove());
+      savedMarkersRef.current = [];
+      return;
+    }
+
+    savedMarkersRef.current.forEach((marker) => marker.remove());
+    savedMarkersRef.current = [];
+
+    const map = mapRef.current;
+    const scale = getMarkerScale(map.getZoom());
+    const iconUrl = MARKER_ICONS.saved;
+
+    savedLocations.forEach((item) => {
+      const lng = Number(item.longitude);
+      const lat = Number(item.latitude);
+      const el = document.createElement("div");
+      el.className = "marker";
+      applyMarkerSize(el, scale);
+      el.style.backgroundImage = `url(${iconUrl})`;
+      el.style.backgroundSize = "contain";
+      el.style.backgroundRepeat = "no-repeat";
+      el.style.backgroundPosition = "center";
+      el.style.cursor = "pointer";
+
+      el.addEventListener("click", () => {
+        setModalLocationRef.current?.(savedToLocation(item));
+      });
+
+      const marker = new maplibregl.Marker({ element: el, anchor: "bottom" })
+        .setLngLat([lng, lat])
+        .addTo(map);
+      savedMarkersRef.current.push(marker);
+    });
+  }, [savedLocations, isMapReady]);
+
   return (
     <>
-      <div ref={containerRef} className="w-full h-full" style={{ width: "100%", height: "100%" }} />
+      <div className="relative w-full h-full" style={{ width: "100%", height: "100%" }}>
+        <div ref={containerRef} className="absolute inset-0 w-full h-full" />
+        {!isMapReady && (
+          <div
+            className="absolute inset-0 z-10 flex items-center justify-center bg-white/20 backdrop-blur-md"
+            aria-hidden={isMapReady}
+          >
+            <Spinner size="lg" />
+          </div>
+        )}
+      </div>
       {modalLocation && (
         <LocationDetailModal
           location={modalLocation}
