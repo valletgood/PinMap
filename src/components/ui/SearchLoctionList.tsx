@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Location } from "@/apis/location/types";
+import { type Location } from "@/apis/location/types";
 import { cn } from "@/lib/utils";
 import { Button } from "./Button";
 import { useLocationStore } from "@/stores/locationStore";
@@ -31,11 +31,7 @@ interface SearchLoctionListProps {
   className?: string;
 }
 
-export function SearchLoctionList({
-  data,
-  onSelect,
-  className = "",
-}: SearchLoctionListProps) {
+export function SearchLoctionList({ data, onSelect, className = "" }: SearchLoctionListProps) {
   if (!data || data.length === 0) {
     return null;
   }
@@ -104,9 +100,7 @@ export function SearchLoctionList({
                 )}
               </h3>
               {location.roadAddress && (
-                <p className="text-sm text-gray-600 mt-1 truncate">
-                  {location.roadAddress}
-                </p>
+                <p className="text-sm text-gray-600 mt-1 truncate">{location.roadAddress}</p>
               )}
             </div>
           </div>

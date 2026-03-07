@@ -7,9 +7,9 @@ import { Input } from "@/components/ui/Input";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Radio } from "@/components/ui/Radio";
 import { useCheckEmailDuplicate, useSignup } from "@/apis/auth/hooks";
-import { ApiResponse, ErrorCode } from "@/lib/api-response";
-import { AxiosError } from "axios";
-import { SignupRequest } from "@/apis/auth/types";
+import { type ApiResponse, ErrorCode } from "@/lib/api-response";
+import { type AxiosError } from "axios";
+import { type SignupRequest } from "@/apis/auth/types";
 import { toast } from "react-toastify";
 import { GuestGuard } from "@/components/auth/GuestGuard";
 import Image from "next/image";
@@ -32,9 +32,7 @@ export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   // 이메일 중복확인 관련 상태
-  const [isEmailAvailable, setIsEmailAvailable] = useState<boolean | null>(
-    null
-  );
+  const [isEmailAvailable, setIsEmailAvailable] = useState<boolean | null>(null);
   const [emailCheckError, setEmailCheckError] = useState<string | null>(null);
 
   // 이메일 중복확인 훅
@@ -84,8 +82,7 @@ export default function SignupPage() {
       onError: (error) => {
         const err = error as AxiosError<ApiResponse>;
         setEmailCheckError(
-          err.response?.data.message ||
-            "이메일 중복확인에 실패했습니다. 다시 시도해주세요."
+          err.response?.data.message || "이메일 중복확인에 실패했습니다. 다시 시도해주세요."
         );
         setIsEmailAvailable(false);
       },
@@ -213,10 +210,7 @@ export default function SignupPage() {
               회원가입
             </h2>
 
-            <section
-              className="space-y-4 md:space-y-5"
-              aria-label="회원가입 폼"
-            >
+            <section className="space-y-4 md:space-y-5" aria-label="회원가입 폼">
               <Input
                 type="text"
                 label="이름"
@@ -240,9 +234,7 @@ export default function SignupPage() {
                       onChange={handleEmail}
                       required
                       disabled={
-                        isLoading ||
-                        checkEmailMutation.isPending ||
-                        signupMutation.isPending
+                        isLoading || checkEmailMutation.isPending || signupMutation.isPending
                       }
                       autoComplete="email"
                       aria-label="이메일 입력"
@@ -309,9 +301,7 @@ export default function SignupPage() {
                         d="M6 18L18 6M6 6l12 12"
                       />
                     </svg>
-                    <span className="text-sm font-medium text-red-700">
-                      {emailCheckError}
-                    </span>
+                    <span className="text-sm font-medium text-red-700">{emailCheckError}</span>
                   </div>
                 )}
               </div>
@@ -339,11 +329,7 @@ export default function SignupPage() {
                 disabled={isLoading || signupMutation.isPending}
                 autoComplete="new-password"
                 aria-label="비밀번호 확인 입력"
-                error={
-                  confirmPassword !== password
-                    ? "비밀번호가 일치하지 않습니다."
-                    : undefined
-                }
+                error={confirmPassword !== password ? "비밀번호가 일치하지 않습니다." : undefined}
               />
 
               <Input
@@ -359,10 +345,7 @@ export default function SignupPage() {
               />
 
               <div className="space-y-2 md:space-y-3">
-                <label
-                  htmlFor="gender"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label htmlFor="gender" className="block text-sm font-medium text-gray-700">
                   성별
                 </label>
                 <div className="flex gap-3 md:gap-3 items-center justify-start">

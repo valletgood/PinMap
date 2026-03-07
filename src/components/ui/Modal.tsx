@@ -10,13 +10,7 @@ export interface ModalProps {
   className?: string;
 }
 
-export function Modal({
-  isOpen,
-  onClose,
-  title,
-  children,
-  className = "",
-}: ModalProps) {
+export function Modal({ isOpen, onClose, title, children, className = "" }: ModalProps) {
   if (!isOpen) return null;
 
   const titleId = title ? "modal-title" : undefined;
@@ -41,10 +35,7 @@ export function Modal({
         <div className="flex flex-col gap-4 p-5 sm:p-6">
           <div className="flex items-start justify-between gap-3">
             {title ? (
-              <h2
-                id={titleId}
-                className="text-[20px] font-semibold leading-snug text-gray-800"
-              >
+              <h2 id={titleId} className="text-[20px] font-semibold leading-snug text-gray-800">
                 {title}
               </h2>
             ) : (

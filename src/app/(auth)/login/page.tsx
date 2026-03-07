@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useLogin } from "@/apis/auth/hooks";
-import { AxiosError } from "axios";
-import { ApiResponse } from "@/lib/api-response";
+import { type AxiosError } from "axios";
+import { type ApiResponse } from "@/lib/api-response";
 import { toast } from "react-toastify";
 import { setToken } from "@/lib/auth";
 import { useAuthStore } from "@/stores/authStore";
@@ -179,9 +179,7 @@ export default function LoginPage() {
                   size="lg"
                   onClick={handleLogin}
                   isLoading={loginMutation.isPending}
-                  disabled={
-                    !email.trim() || !password.trim() || loginMutation.isPending
-                  }
+                  disabled={!email.trim() || !password.trim() || loginMutation.isPending}
                   className="w-full"
                 >
                   로그인

@@ -18,8 +18,7 @@ import { cn } from "@/lib/utils";
  * />
  * ```
  */
-interface InputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange"> {
+interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange"> {
   label?: string;
   error?: string;
   helperText?: string;
@@ -60,10 +59,7 @@ export const Input = React.memo<InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label
-            htmlFor={inputId}
-            className="block text-sm font-medium text-gray-700 mb-1.5"
-          >
+          <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-1.5">
             {label}
           </label>
         )}
@@ -86,11 +82,7 @@ export const Input = React.memo<InputProps>(
             )}
             aria-invalid={hasError}
             aria-describedby={
-              error
-                ? `${inputId}-error`
-                : helperText
-                ? `${inputId}-helper`
-                : undefined
+              error ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined
             }
             {...props}
           />
@@ -118,11 +110,7 @@ export const Input = React.memo<InputProps>(
           )}
         </div>
         {error && (
-          <p
-            id={`${inputId}-error`}
-            className="mt-1.5 text-sm text-red-600"
-            role="alert"
-          >
+          <p id={`${inputId}-error`} className="mt-1.5 text-sm text-red-600" role="alert">
             {error}
           </p>
         )}

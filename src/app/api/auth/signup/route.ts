@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { type NextRequest } from "next/server";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -15,15 +15,7 @@ import bcrypt from "bcryptjs";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const {
-      name,
-      email,
-      password,
-      confirmPassword,
-      birthDate,
-      gender,
-      agreeToTerms,
-    } = body;
+    const { name, email, password, confirmPassword, birthDate, gender, agreeToTerms } = body;
 
     // 필수 필드 검증
     if (!name || typeof name !== "string" || name.trim() === "") {
@@ -39,10 +31,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!confirmPassword || typeof confirmPassword !== "string") {
-      return errorResponse(
-        ErrorCode.BAD_REQUEST,
-        "비밀번호 확인을 입력해주세요."
-      );
+      return errorResponse(ErrorCode.BAD_REQUEST, "비밀번호 확인을 입력해주세요.");
     }
 
     if (!birthDate || typeof birthDate !== "string") {
@@ -51,15 +40,11 @@ export async function POST(request: NextRequest) {
 
     // 비밀번호 일치 확인
     if (password !== confirmPassword) {
-      return errorResponse(
-        ErrorCode.BAD_REQUEST,
-        "비밀번호가 일치하지 않습니다."
-      );
+      return errorResponse(ErrorCode.BAD_REQUEST, "비밀번호가 일치하지 않습니다.");
     }
 
     // 비밀번호 강도 검증 (영문, 숫자, 특수문자 포함 8자 이상)
-    const passwordRegex =
-      /^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
+    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
     if (!passwordRegex.test(password)) {
       return errorResponse(
         ErrorCode.BAD_REQUEST,
@@ -70,10 +55,7 @@ export async function POST(request: NextRequest) {
     // 이메일 형식 검증
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return errorResponse(
-        ErrorCode.BAD_REQUEST,
-        "올바른 이메일 형식이 아닙니다."
-      );
+      return errorResponse(ErrorCode.BAD_REQUEST, "올바른 이메일 형식이 아닙니다.");
     }
 
     // 이용약관 동의 확인
@@ -101,26 +83,17 @@ export async function POST(request: NextRequest) {
 
     if (birthDate) {
       if (typeof birthDate !== "string") {
-        return errorResponse(
-          ErrorCode.BAD_REQUEST,
-          "생년월일 형식이 올바르지 않습니다."
-        );
+        return errorResponse(ErrorCode.BAD_REQUEST, "생년월일 형식이 올바르지 않습니다.");
       }
 
       const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
       if (!dateRegex.test(birthDate)) {
-        return errorResponse(
-          ErrorCode.BAD_REQUEST,
-          "생년월일은 YYYY-MM-DD 형식이어야 합니다."
-        );
+        return errorResponse(ErrorCode.BAD_REQUEST, "생년월일은 YYYY-MM-DD 형식이어야 합니다.");
       }
 
       const date = new Date(birthDate);
       if (isNaN(date.getTime())) {
-        return errorResponse(
-          ErrorCode.BAD_REQUEST,
-          "유효하지 않은 날짜입니다."
-        );
+        return errorResponse(ErrorCode.BAD_REQUEST, "유효하지 않은 날짜입니다.");
       }
 
       formattedBirthDate = birthDate;
@@ -132,10 +105,7 @@ export async function POST(request: NextRequest) {
       if (gender === "male" || gender === "female" || gender === "other") {
         validGender = gender;
       } else {
-        return errorResponse(
-          ErrorCode.BAD_REQUEST,
-          "올바른 성별을 선택해주세요."
-        );
+        return errorResponse(ErrorCode.BAD_REQUEST, "올바른 성별을 선택해주세요.");
       }
     }
 
@@ -174,9 +144,6 @@ export async function POST(request: NextRequest) {
       return errorResponse(ErrorCode.CONFLICT, "이미 사용 중인 이메일입니다.");
     }
 
-    return errorResponse(
-      ErrorCode.INTERNAL_SERVER_ERROR,
-      "회원가입 중 오류가 발생했습니다."
-    );
+    return errorResponse(ErrorCode.INTERNAL_SERVER_ERROR, "회원가입 중 오류가 발생했습니다.");
   }
 }

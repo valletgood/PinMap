@@ -1,4 +1,4 @@
-import { Location } from "@/apis/location/types";
+import { type Location } from "@/apis/location/types";
 import { Modal } from "../ui/Modal";
 import { useMemo } from "react";
 import { stripHtmlTags } from "@/lib/utils";
@@ -15,11 +15,7 @@ interface LocationDetailModalProps {
   onSave?: () => void;
 }
 
-export function LocationDetailModal({
-  location,
-  onClose,
-  onSave,
-}: LocationDetailModalProps) {
+export function LocationDetailModal({ location, onClose, onSave }: LocationDetailModalProps) {
   const { title, link, category, description, roadAddress } = location;
   const hasLink = isNonEmpty(link);
   const hasCategory = isNonEmpty(category);
@@ -42,10 +38,7 @@ export function LocationDetailModal({
       <div className="flex flex-col items-center text-center">
         {/* 아이콘 영역: 은은한 글로우 + 흰 원 + ico_map.svg */}
         <div className="relative mb-5 flex items-center justify-center">
-          <div
-            className="absolute h-20 w-20 rounded-full bg-[#6f62cb]/25 blur-2xl"
-            aria-hidden
-          />
+          <div className="absolute h-20 w-20 rounded-full bg-[#6f62cb]/25 blur-2xl" aria-hidden />
           <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-sm">
             <Image
               src="/icons/ico_map.svg"

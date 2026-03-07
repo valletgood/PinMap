@@ -1,6 +1,6 @@
-import { ApiResponse } from "@/lib/api-response";
+import { type ApiResponse } from "@/lib/api-response";
 import { axiosInstance } from "../axios";
-import { Location } from "./types";
+import { type Location } from "./types";
 import { normalizeResponse } from "../types";
 
 /**

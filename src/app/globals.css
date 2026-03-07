@@ -102,7 +102,9 @@ body {
   color: #fafafa;
   background: rgba(26, 26, 26, 0.92);
   border-radius: 0.5rem;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.18),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
   pointer-events: none;
   white-space: nowrap;
   max-width: 16rem;
@@ -110,7 +112,9 @@ body {
   text-overflow: ellipsis;
   opacity: 0;
   transform: translate(-50%, -100%) translateY(-0.5rem);
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 .map-marker-tooltip.is-visible {

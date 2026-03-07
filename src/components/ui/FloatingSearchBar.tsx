@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "./Button";
 import { Input } from "./Input";
 import { SearchLoctionList } from "./SearchLoctionList";
-import { Location } from "@/apis/location/types";
+import { type Location } from "@/apis/location/types";
 
 /**
  * FloatingSearchBar 컴포넌트
@@ -82,12 +82,7 @@ export const FloatingSearchBar = React.memo<FloatingSearchBarProps>(
     };
 
     return (
-      <div
-        className={cn(
-          "fixed top-0 left-0 right-0 z-50 px-4 pt-4 md:px-6 md:pt-6",
-          className
-        )}
-      >
+      <div className={cn("fixed top-0 left-0 right-0 z-50 px-4 pt-4 md:px-6 md:pt-6", className)}>
         <div className="max-w-2xl mx-auto" aria-label="맛집 검색">
           {/* 검색바 - 항상 rounded-full 유지 */}
           <div className="bg-white/60 backdrop-blur-sm shadow-lg border border-gray rounded-full">
@@ -180,10 +175,7 @@ export const FloatingSearchBar = React.memo<FloatingSearchBarProps>(
               {/* 검색 결과 목록 */}
               {!isFetching && hasResults && (
                 <div className="p-2">
-                  <SearchLoctionList
-                    data={searchResults}
-                    onSelect={onLocationSelect}
-                  />
+                  <SearchLoctionList data={searchResults} onSelect={onLocationSelect} />
                 </div>
               )}
             </div>

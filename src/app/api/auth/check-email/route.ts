@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { type NextRequest } from "next/server";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -24,10 +24,7 @@ export async function POST(request: NextRequest) {
     // 이메일 형식 검증
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return errorResponse(
-        ErrorCode.BAD_REQUEST,
-        "올바른 이메일 형식이 아닙니다."
-      );
+      return errorResponse(ErrorCode.BAD_REQUEST, "올바른 이메일 형식이 아닙니다.");
     }
 
     // 데이터베이스에서 이메일 중복 확인

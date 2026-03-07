@@ -1,6 +1,6 @@
-import { NextRequest } from "next/server";
+import { type NextRequest } from "next/server";
 import { successResponse, errorResponse, ErrorCode } from "@/lib/api-response";
-import { LocationSearchResponse } from "@/apis/location/types";
+import { type LocationSearchResponse } from "@/apis/location/types";
 
 /**
  * 네이버 장소 검색 API
@@ -21,10 +21,7 @@ export async function GET(request: NextRequest) {
     const clientSecret = process.env.NAVER_CLIENT_SECRET;
 
     if (!clientId || !clientSecret) {
-      return errorResponse(
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        "네이버 API 설정이 올바르지 않습니다."
-      );
+      return errorResponse(ErrorCode.INTERNAL_SERVER_ERROR, "네이버 API 설정이 올바르지 않습니다.");
     }
 
     // 네이버 장소 검색 API 호출
@@ -58,9 +55,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("장소 검색 API 오류:", error);
-    return errorResponse(
-      ErrorCode.INTERNAL_SERVER_ERROR,
-      "장소 검색 중 오류가 발생했습니다."
-    );
+    return errorResponse(ErrorCode.INTERNAL_SERVER_ERROR, "장소 검색 중 오류가 발생했습니다.");
   }
 }

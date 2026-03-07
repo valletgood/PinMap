@@ -6,18 +6,13 @@ import { Header } from "@/components/ui/Header";
 import { FloatingSearchBar } from "@/components/ui/FloatingSearchBar";
 import { useSearchLocation } from "@/apis/location/hooks";
 import { useState } from "react";
-import { Location } from "@/apis/location/types";
+import { type Location } from "@/apis/location/types";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState<Location | null>(
-    null
-  );
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
 
-  const { data: searchLocationData, isFetching } = useSearchLocation(
-    searchQuery,
-    !!searchQuery
-  );
+  const { data: searchLocationData, isFetching } = useSearchLocation(searchQuery, !!searchQuery);
 
   const handleSearch = (query: string) => {
     // 검색 로직 구현

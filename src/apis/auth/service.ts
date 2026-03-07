@@ -1,8 +1,8 @@
 import { axiosInstance } from "../axios";
 import type { ApiResponse } from "@/lib/api-response";
 import { normalizeResponse } from "../types";
-import { LoginRequest, SignupRequest, SignupResponse } from "./types";
-import { User } from "@/db/schema";
+import { type LoginRequest, type SignupRequest, type SignupResponse } from "./types";
+import { type User } from "@/db/schema";
 
 export const authService = {
   /**
@@ -12,10 +12,7 @@ export const authService = {
    * @throws ApiError - 에러 발생 시
    */
   checkEmailDuplicate: async (email: string): Promise<ApiResponse> => {
-    const { data } = await axiosInstance.post<ApiResponse>(
-      "/api/auth/check-email",
-      { email }
-    );
+    const { data } = await axiosInstance.post<ApiResponse>("/api/auth/check-email", { email });
     return data;
   },
   /**
@@ -40,15 +37,12 @@ export const authService = {
    * @returns 정규화된 응답 데이터 (user 정보 및 토큰)
    * @throws ApiError - 에러 발생 시
    */
-  login: async (
-    loginData: LoginRequest
-  ): Promise<{ user: User; token: string }> => {
-    const response = await axiosInstance.post<
-      ApiResponse<{ user: User; token: string }>
-    >("/api/auth/login", loginData);
+  login: async (loginData: LoginRequest): Promise<{ user: User; token: string }> => {
+    const response = await axiosInstance.post<ApiResponse<{ user: User; token: string }>>(
+      "/api/auth/login",
+      loginData
+    );
 
-    return normalizeResponse<ApiResponse<{ user: User; token: string }>>(
-      response
-    ).data;
+    return normalizeResponse<ApiResponse<{ user: User; token: string }>>(response).data;
   },
 };

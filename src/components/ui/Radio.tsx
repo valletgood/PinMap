@@ -50,9 +50,7 @@ export const Radio = React.memo<RadioProps>(
           >
             {label}
           </label>
-          {helperText && (
-            <p className="mt-1 text-xs text-gray-500">{helperText}</p>
-          )}
+          {helperText && <p className="mt-1 text-xs text-gray-500">{helperText}</p>}
         </div>
       </div>
     );

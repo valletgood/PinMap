@@ -18,8 +18,7 @@ import { cn } from "@/lib/utils";
  * />
  * ```
  */
-interface CheckboxProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange"> {
+interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange"> {
   label: string;
   helperText?: string;
   onChange?: (checked: boolean) => void;
@@ -27,8 +26,7 @@ interface CheckboxProps
 
 export const Checkbox = React.memo<CheckboxProps>(
   ({ label, helperText, className = "", id, onChange, ...props }) => {
-    const checkboxId =
-      id || `checkbox-${Math.random().toString(36).substr(2, 9)}`;
+    const checkboxId = id || `checkbox-${Math.random().toString(36).substr(2, 9)}`;
 
     const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       onChange?.(e.target.checked);
@@ -56,9 +54,7 @@ export const Checkbox = React.memo<CheckboxProps>(
           >
             {label}
           </label>
-          {helperText && (
-            <p className="mt-1 text-xs text-gray-500">{helperText}</p>
-          )}
+          {helperText && <p className="mt-1 text-xs text-gray-500">{helperText}</p>}
         </div>
       </div>
     );

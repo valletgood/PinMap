@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useLocationStore } from "@/stores/locationStore";
-import { Location } from "@/apis/location/types";
+import { type Location } from "@/apis/location/types";
 import { LocationDetailModal } from "./LocationDetailModal";
-import { SaveLocationModal, SaveLocationData } from "./SaveLocationModal";
+import { SaveLocationModal, type SaveLocationData } from "./SaveLocationModal";
 
 const FOOD_CATEGORIES = ["한식", "양식", "일식", "중식"];
 const DESSERT_CATEGORIES = ["카페", "디저트"];
@@ -34,10 +34,8 @@ function applyMarkerSize(el: HTMLElement, scale: number): void {
 
 function getMarkerIconUrl(category: string): string {
   const normalized = category?.trim() ?? "";
-  if (FOOD_CATEGORIES.some((c) => normalized.includes(c)))
-    return MARKER_ICONS.food;
-  if (DESSERT_CATEGORIES.some((c) => normalized.includes(c)))
-    return MARKER_ICONS.dessert;
+  if (FOOD_CATEGORIES.some((c) => normalized.includes(c))) return MARKER_ICONS.food;
+  if (DESSERT_CATEGORIES.some((c) => normalized.includes(c))) return MARKER_ICONS.dessert;
   return MARKER_ICONS.default;
 }
 
@@ -52,17 +50,12 @@ interface MapViewProps {
   selectedLocation?: Location | null;
 }
 
-export function MapView({
-  searchResults = [],
-  selectedLocation = null,
-}: MapViewProps) {
+export function MapView({ searchResults = [], selectedLocation = null }: MapViewProps) {
   const mapRef = useRef<maplibregl.Map | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const markersRef = useRef<maplibregl.Marker[]>([]);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
-  const setModalLocationRef = useRef<((loc: Location | null) => void) | null>(
-    null
-  );
+  const setModalLocationRef = useRef<((loc: Location | null) => void) | null>(null);
   const [modalLocation, setModalLocation] = useState<Location | null>(null);
   const [saveLocation, setSaveLocation] = useState<Location | null>(null);
   setModalLocationRef.current = setModalLocation;
@@ -95,10 +88,7 @@ export function MapView({
       interactive: true,
     });
 
-    mapRef.current.addControl(
-      new maplibregl.NavigationControl(),
-      "bottom-right"
-    );
+    mapRef.current.addControl(new maplibregl.NavigationControl(), "bottom-right");
 
     // 지도가 로드된 후 초기화 완료 표시
     mapRef.current.on("load", () => {
@@ -223,8 +213,7 @@ export function MapView({
   }, [searchResults]);
 
   useEffect(() => {
-    if (!mapRef.current || !selectedLocation || !isInitializedRef.current)
-      return;
+    if (!mapRef.current || !selectedLocation || !isInitializedRef.current) return;
 
     const lng = Number(selectedLocation.mapx) / 1e7;
     const lat = Number(selectedLocation.mapy) / 1e7;
@@ -266,11 +255,7 @@ export function MapView({
 
   return (
     <>
-      <div
-        ref={containerRef}
-        className="w-full h-full"
-        style={{ width: "100%", height: "100%" }}
-      />
+      <div ref={containerRef} className="w-full h-full" style={{ width: "100%", height: "100%" }} />
       {modalLocation && (
         <LocationDetailModal
           location={modalLocation}

@@ -6,8 +6,7 @@ import jwt from "jsonwebtoken";
  * JWT 시크릿 키 (환경 변수에서 가져오거나 기본값 사용)
  * 프로덕션에서는 반드시 환경 변수로 설정해야 합니다.
  */
-const JWT_SECRET =
-  process.env.JWT_SECRET || "your-secret-key-change-in-production";
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 
 /**
  * JWT 토큰 만료 시간 (7일)

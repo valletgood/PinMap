@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { authService } from "./service";
-import { LoginRequest, SignupRequest } from "./types";
+import { type LoginRequest, type SignupRequest } from "./types";
 
 export const useCheckEmailDuplicate = () => {
   return useMutation({
