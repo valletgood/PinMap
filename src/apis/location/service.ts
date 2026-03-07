@@ -45,4 +45,22 @@ export const locationApi = {
     );
     return response.data;
   },
+  deleteLocation: async (id: number | string): Promise<ApiResponse> => {
+    const response = await axiosInstance.delete<ApiResponse>(
+      `/api/location/save-location/${id}`,
+      { withCredentials: true }
+    );
+    return response.data;
+  },
+  editLocation: async (
+    id: number | string,
+    data: Partial<Omit<NewSavedLocation, "userId">>
+  ): Promise<ApiResponse> => {
+    const response = await axiosInstance.patch<ApiResponse>(
+      `/api/location/save-location/${id}`,
+      data,
+      { withCredentials: true }
+    );
+    return response.data;
+  },
 };

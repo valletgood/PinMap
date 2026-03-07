@@ -38,3 +38,21 @@ export const useUploadLocationImages = () => {
     },
   });
 };
+
+export const useDeleteLocation = () => {
+  return useMutation({
+    mutationFn: (id: string) => locationApi.deleteLocation(id),
+  });
+};
+
+export const useEditLocation = () => {
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number | string;
+      data: Parameters<typeof locationApi.editLocation>[1];
+    }) => locationApi.editLocation(id, data),
+  });
+};
