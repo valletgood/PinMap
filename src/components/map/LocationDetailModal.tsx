@@ -1,10 +1,15 @@
+"use client";
+
 import { type Location } from "@/apis/location/types";
 import type { SavedLocation } from "@/db/schema";
 import { Modal } from "../ui/Modal";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { stripHtmlTags } from "@/lib/utils";
 import Image from "next/image";
 import { Button } from "../ui/Button";
+import { DeleteModal } from "@/components/modal/DeleteModal";
+import { useDeleteLocation } from "@/apis/location/hooks";
+import { useQueryClient } from "@tanstack/react-query";
 
 export type ModalDetail =
   | { type: "search"; location: Location }
@@ -29,16 +34,35 @@ interface LocationDetailModalProps {
   detail: NonNullable<ModalDetail>;
   onClose: () => void;
   onSave?: () => void;
+  /** type === "saved" 일 때 수정 버튼 클릭 시 호출 */
+  onEdit?: (item: SavedLocation) => void;
 }
 
-export function LocationDetailModal({ detail, onClose, onSave }: LocationDetailModalProps) {
+export function LocationDetailModal({ detail, onClose, onSave, onEdit }: LocationDetailModalProps) {
   const isSearch = detail.type === "search";
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const queryClient = useQueryClient();
+  const deleteLocation = useDeleteLocation();
+
   const plainTitle = useMemo(() => {
     if (detail.type !== "search") return "";
     const title = detail.location.title;
     if (!title) return "위치 정보";
     return stripHtmlTags(title);
   }, [detail]);
+
+  const handleDeleteConfirm = () => {
+    if (detail.type !== "saved") return;
+    deleteLocation.mutate(String(detail.location.id), {
+      onSuccess: (res) => {
+        if (res.error === 0) {
+          queryClient.invalidateQueries({ queryKey: ["location", "saved"] });
+          setShowDeleteConfirm(false);
+          onClose();
+        }
+      },
+    });
+  };
 
   if (isSearch) {
     const location = detail.location;
@@ -118,7 +142,6 @@ export function LocationDetailModal({ detail, onClose, onSave }: LocationDetailM
     <Modal isOpen={true} title="" onClose={onClose}>
       <div className="flex flex-col items-start text-left">
         <div className="relative mb-5 flex items-center justify-center">
-          <div className="absolute h-20 w-20 rounded-full bg-[#6f62cb]/25 blur-2xl" aria-hidden />
           <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-sm">
             <Image
               src="/icons/ico_love.svg"
@@ -131,7 +154,25 @@ export function LocationDetailModal({ detail, onClose, onSave }: LocationDetailM
           </div>
         </div>
 
-        <h2 className="text-[20px] font-bold text-gray-800">{item.title}</h2>
+        <div className="flex w-full items-center justify-between gap-2">
+          <h2 className="min-w-0 flex-1 truncate text-[20px] font-bold text-gray-800">
+            {item.title}
+          </h2>
+          <Button
+            variant="ghost"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="flex-shrink-0 rounded-lg p-1.5 text-[#6f62cb] hover:bg-[#6f62cb]/10 hover:text-[#5a2fb8]"
+            aria-label={`${item.title} 삭제`}
+          >
+            <Image
+              src="/icons/ico_delete.svg"
+              alt=""
+              width={22}
+              height={22}
+              className="h-[22px] w-[22px]"
+            />
+          </Button>
+        </div>
         {isNonEmpty(item.category) && (
           <p className="mt-1 mr-auto text-md">
             <span className="font-medium text-gray-700">{item.category}</span>
@@ -179,7 +220,7 @@ export function LocationDetailModal({ detail, onClose, onSave }: LocationDetailM
         )}
 
         {isNonEmpty(item.link) && (
-          <p className="mt-3 mr-auto text-md">
+          <p className="mt-3 mr-auto text-sm">
             <a
               href={item.link}
               target="_blank"
@@ -197,16 +238,36 @@ export function LocationDetailModal({ detail, onClose, onSave }: LocationDetailM
           </p>
         )}
 
-        <div className="mt-6 w-full">
+        <div className="mt-6 flex w-full gap-3">
           <Button
             onClick={onClose}
             variant="secondary"
-            className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-50"
+            className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-50"
           >
             닫기
           </Button>
+          {onEdit && (
+            <Button
+              variant="primary"
+              onClick={() => {
+                onEdit(item);
+                onClose();
+              }}
+              className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#6357b8]"
+            >
+              수정
+            </Button>
+          )}
         </div>
       </div>
+
+      <DeleteModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDeleteConfirm}
+        title={item.title}
+        isDeleting={deleteLocation.isPending}
+      />
     </Modal>
   );
 }

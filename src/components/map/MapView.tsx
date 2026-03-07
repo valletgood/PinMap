@@ -8,6 +8,7 @@ import { type Location } from "@/apis/location/types";
 import type { SavedLocation } from "@/db/schema";
 import { LocationDetailModal, type ModalDetail } from "./LocationDetailModal";
 import { SaveLocationModal } from "./SaveLocationModal";
+import { EditLocationModal } from "./EditLocationModal";
 import { CompleteModal } from "../modal/CompleteModal";
 import { Spinner } from "@/components/ui/Spinner";
 import {
@@ -62,6 +63,7 @@ export function MapView({
   const setModalDetailRef = useRef<((detail: ModalDetail) => void) | null>(null);
   const [modalDetail, setModalDetail] = useState<ModalDetail>(null);
   const [saveLocation, setSaveLocation] = useState<Location | null>(null);
+  const [editingSavedLocation, setEditingSavedLocation] = useState<SavedLocation | null>(null);
   const [isSaveComplete, setIsSaveComplete] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
   const { location } = useLocationStore();
@@ -310,6 +312,21 @@ export function MapView({
                 }
               : undefined
           }
+          onEdit={
+            modalDetail.type === "saved"
+              ? (item) => {
+                  setEditingSavedLocation(item);
+                  setModalDetail(null);
+                }
+              : undefined
+          }
+        />
+      )}
+      {editingSavedLocation && (
+        <EditLocationModal
+          savedLocation={editingSavedLocation}
+          onClose={() => setEditingSavedLocation(null)}
+          onComplete={() => setEditingSavedLocation(null)}
         />
       )}
       {saveLocation && (

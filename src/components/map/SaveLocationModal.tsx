@@ -285,9 +285,9 @@ export function SaveLocationModal({ location, onClose, onComplete }: SaveLocatio
               <legend className="mb-1.5 text-sm font-medium text-gray-700">카테고리</legend>
               <div className="flex flex-wrap gap-2">
                 {SAVE_CATEGORIES.map((cat) => (
-                  <button
+                  <Button
                     key={cat}
-                    type="button"
+                    variant="primary"
                     onClick={() => setCategory(cat)}
                     className={`rounded-xl px-3.5 py-1.5 text-sm font-medium border border-[#6f62cb]/50 transition-all ${
                       category === cat
@@ -296,7 +296,7 @@ export function SaveLocationModal({ location, onClose, onComplete }: SaveLocatio
                     }`}
                   >
                     {cat}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </fieldset>
