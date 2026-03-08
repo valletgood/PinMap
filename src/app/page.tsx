@@ -4,6 +4,7 @@ import { AuthGuard } from "@/components/auth/AuthGuard";
 import { MapView } from "@/components/map/MapView";
 import { FloatingSearchBar } from "@/components/ui/FloatingSearchBar";
 import { SavedListPanel } from "@/components/ui/SavedListPanel";
+import { SettingsTrigger } from "@/components/ui/SettingsTrigger";
 import { useSearchLocation, useSavedLocations } from "@/apis/location/hooks";
 import { useState, useCallback } from "react";
 import { type Location } from "@/apis/location/types";
@@ -13,6 +14,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [isSavedListOpen, setIsSavedListOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [savedLocationToOpen, setSavedLocationToOpen] = useState<SavedLocation | null>(null);
 
   const { data: searchLocationData, isFetching } = useSearchLocation(searchQuery, !!searchQuery);
@@ -62,12 +64,23 @@ export default function Home() {
         <SavedListPanel
           savedLocations={savedList}
           isOpen={isSavedListOpen}
-          onOpen={() => setIsSavedListOpen(true)}
+          onOpen={() => {
+            setIsSavedListOpen(true);
+            setIsSettingsOpen(false);
+          }}
           onClose={() => setIsSavedListOpen(false)}
           onSelectItem={(item) => {
             setSavedLocationToOpen(item);
             setIsSavedListOpen(false);
           }}
+        />
+        <SettingsTrigger
+          isOpen={isSettingsOpen}
+          onOpen={() => {
+            setIsSettingsOpen(true);
+            setIsSavedListOpen(false);
+          }}
+          onClose={() => setIsSettingsOpen(false)}
         />
       </div>
     </AuthGuard>

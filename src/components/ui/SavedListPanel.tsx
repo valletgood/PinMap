@@ -97,6 +97,7 @@ export function SavedListPanel({
           "fixed bottom-6 left-4 z-40 flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-all p-0",
           "bg-white/60 backdrop-blur-md border border-white/50",
           "hover:bg-white/80 active:scale-95",
+          "focus:ring-2 focus:ring-[#6f62cb] focus:ring-inset focus:ring-offset-0 focus:outline-none",
           isOpen ? "text-gray-600" : "text-[#6f62cb]",
           className
         )}
@@ -154,6 +155,7 @@ export function SavedListPanel({
                         }
                         className={cn(
                           "w-full rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors",
+                          "focus:ring-2 focus:ring-[#6f62cb] focus:ring-inset focus:ring-offset-0 focus:outline-none",
                           selectedCategory === category
                             ? "bg-[#6f62cb]/25 text-[#6f62cb]"
                             : "text-gray-700 hover:bg-white/60"
@@ -193,28 +195,31 @@ export function SavedListPanel({
                           variant="secondary"
                           onClick={() => handleSelectItem(item)}
                           className={cn(
-                            "min-w-0 flex-1 rounded-xl border border-white/40 bg-white/50 px-3 py-2.5 text-left backdrop-blur-sm",
+                            "flex items-start justify-between min-w-0 flex-1 rounded-xl border border-white/40 bg-white/50 px-3 py-2.5 text-left backdrop-blur-sm",
                             "hover:bg-white/70 hover:border-white/60 active:bg-white/60",
+                            "focus:ring-2 focus:ring-[#6f62cb] focus:ring-inset focus:ring-offset-0 focus:outline-none",
                             "transition-colors"
                           )}
                         >
-                          <span className="block truncate font-medium text-gray-900">
-                            {item.title}
-                          </span>
-                          {item.roadAddress && (
-                            <span className="mt-0.5 block truncate text-xs text-gray-500">
-                              {item.roadAddress}
+                          <div className="flex flex-col">
+                            <span className="block truncate font-medium text-gray-900">
+                              {item.title}
                             </span>
-                          )}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          onClick={() => handleDeleteClick(item)}
-                          disabled={deleteLocation.isPending}
-                          className="flex-shrink-0 rounded-xl p-2 text-[#6f62cb] hover:bg-[#6f62cb]/15 hover:text-[#5a2fb8]"
-                          aria-label={`${item.title} 삭제`}
-                        >
-                          <Image src="/icons/ico_delete.svg" alt="삭제" width={20} height={20} />
+                            {item.roadAddress && (
+                              <span className="mt-0.5 block truncate text-xs text-gray-500">
+                                {item.roadAddress}
+                              </span>
+                            )}
+                          </div>
+                          <Button
+                            variant="ghost"
+                            onClick={() => handleDeleteClick(item)}
+                            disabled={deleteLocation.isPending}
+                            className="flex-shrink-0 rounded-xl p-2 text-[#6f62cb] hover:bg-[#6f62cb]/15 hover:text-[#5a2fb8] focus:ring-2 focus:ring-[#6f62cb] focus:ring-inset focus:ring-offset-0 focus:outline-none"
+                            aria-label={`${item.title} 삭제`}
+                          >
+                            <Image src="/icons/ico_delete.svg" alt="삭제" width={20} height={20} />
+                          </Button>
                         </Button>
                       </li>
                     ))}

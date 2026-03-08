@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useLocationStore } from "@/stores/locationStore";
+import { useMapStyleStore } from "@/stores/mapStyleStore";
 import { type Location } from "@/apis/location/types";
 import type { SavedLocation } from "@/db/schema";
 import { LocationDetailModal, type ModalDetail } from "./LocationDetailModal";
@@ -18,6 +19,7 @@ import {
   DEFAULT_MAP_CENTER,
   FLY_TO_DURATION_SLOW,
   FLY_TO_ZOOM,
+  getMapStyleUrl,
   getMarkerIconUrl,
   getMarkerScale,
   MARKER_ICONS,
@@ -67,6 +69,7 @@ export function MapView({
   const [isSaveComplete, setIsSaveComplete] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
   const { location } = useLocationStore();
+  const { mapDarkMode } = useMapStyleStore();
   const isInitializedRef = useRef(false);
 
   setModalDetailRef.current = setModalDetail;
@@ -93,7 +96,7 @@ export function MapView({
 
     mapRef.current = new maplibregl.Map({
       container: containerRef.current,
-      style: `https://api.maptiler.com/maps/019cc3b6-4ea1-78b9-82c0-189623ed6346/style.json?key=${key}`,
+      style: getMapStyleUrl(key, mapDarkMode),
       center: initialCenter,
       zoom: FLY_TO_ZOOM,
       pitch: 0,
@@ -149,6 +152,13 @@ export function MapView({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 지도 다크 모드 토글 시 스타일만 변경
+  useEffect(() => {
+    const key = process.env.NEXT_PUBLIC_MAPTILER_KEY;
+    if (!key || !mapRef.current || !isInitializedRef.current) return;
+    mapRef.current.setStyle(getMapStyleUrl(key, mapDarkMode));
+  }, [mapDarkMode]);
 
   // location 변경 시 지도 중심 이동
   useEffect(() => {

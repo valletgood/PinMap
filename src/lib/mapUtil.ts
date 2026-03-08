@@ -15,6 +15,18 @@ export const FLY_TO_DURATION = 600;
 /** flyTo 느린 이동 duration (ms), 예: location 변경 시 */
 export const FLY_TO_DURATION_SLOW = 1000;
 
+/** 지도 스타일 URL (라이트) */
+export const MAP_STYLE_LIGHT =
+  "https://api.maptiler.com/maps/019cc3b6-4ea1-78b9-82c0-189623ed6346/style.json";
+/** 지도 스타일 URL (다크) */
+export const MAP_STYLE_DARK =
+  "https://api.maptiler.com/maps/019cc3de-df75-7713-ba27-4592ce2fcd6d/style.json";
+
+export function getMapStyleUrl(key: string, dark: boolean): string {
+  const base = dark ? MAP_STYLE_DARK : MAP_STYLE_LIGHT;
+  return `${base}?key=${key}`;
+}
+
 export function createFlyToOptions(
   center: [number, number],
   options?: { duration?: number }
