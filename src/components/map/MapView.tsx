@@ -99,7 +99,7 @@ export function MapView({
       style: getMapStyleUrl(key, mapDarkMode),
       center: initialCenter,
       zoom: FLY_TO_ZOOM,
-      pitch: 0,
+      pitch: 40,
       bearing: 0,
       attributionControl: false,
       interactive: true,
