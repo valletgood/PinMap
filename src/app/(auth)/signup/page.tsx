@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Radio } from "@/components/ui/Radio";
 import { useCheckEmailDuplicate, useSignup } from "@/apis/auth/hooks";
-import { type ApiResponse, ErrorCode } from "@/lib/api-response";
+import { type ApiResponse } from "@/lib/api-response";
 import { type AxiosError } from "axios";
 import { type SignupRequest } from "@/apis/auth/types";
 import { toast } from "react-toastify";

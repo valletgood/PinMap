@@ -76,7 +76,6 @@ export function EditLocationModal({ savedLocation, onClose, onComplete }: EditLo
       : "맛집") as SaveCategory
   );
   const [review, setReview] = useState(savedLocation.review ?? "");
-  const [link, setLink] = useState(savedLocation.link ?? "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -115,7 +114,7 @@ export function EditLocationModal({ savedLocation, onClose, onComplete }: EditLo
             images: allImages,
             category,
             review: review.trim() || undefined,
-            link: link.trim() || undefined,
+            link: savedLocation.link || undefined,
           },
         },
         {
