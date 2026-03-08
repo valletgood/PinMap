@@ -34,7 +34,7 @@ importers:
         version: 1.11.19
       drizzle-orm:
         specifier: ^0.36.0
-        version: 0.36.4(@types/pg@8.18.0)(@types/react@18.3.28)(pg@8.19.0)(react@18.3.1)
+        version: 0.36.4(@types/pg@8.18.0)(@types/react@18.3.28)(pg@8.19.0)(postgres@3.4.8)(react@18.3.1)
       jsonwebtoken:
         specifier: ^9.0.3
         version: 9.0.3
@@ -47,6 +47,9 @@ importers:
       pg:
         specifier: ^8.11.0
         version: 8.19.0
+      postgres:
+        specifier: ^3.4.5
+        version: 3.4.8
       react:
         specifier: ^18.3.0
         version: 18.3.1
@@ -2193,6 +2196,10 @@ packages:
     resolution: {integrity: sha512-9ZhXKM/rw350N1ovuWHbGxnGh/SNJ4cnxHiM0rxE4VN41wsg8P8zWn9hv/buK00RP4WvlOyr/RBDiptyxVbkZQ==}
     engines: {node: '>=0.10.0'}
 
+  postgres@3.4.8:
+    resolution: {integrity: sha512-d+JFcLM17njZaOLkv6SCev7uoLaBtfK86vMUXhW1Z4glPWh4jozno9APvW/XKFJ3CCxVoC7OL38BqRydtu5nGg==}
+    engines: {node: '>=12'}
+
   potpack@2.1.0:
     resolution: {integrity: sha512-pcaShQc1Shq0y+E7GqJqvZj8DTthWV1KeHGdi0Z6IAin2Oi3JnLCOfwnCo84qc+HAp52wT9nK9H7FAJp5a44GQ==}
 
@@ -3582,11 +3589,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.36.4(@types/pg@8.18.0)(@types/react@18.3.28)(pg@8.19.0)(react@18.3.1):
+  drizzle-orm@0.36.4(@types/pg@8.18.0)(@types/react@18.3.28)(pg@8.19.0)(postgres@3.4.8)(react@18.3.1):
     optionalDependencies:
       '@types/pg': 8.18.0
       '@types/react': 18.3.28
       pg: 8.19.0
+      postgres: 3.4.8
       react: 18.3.1
 
   dunder-proto@1.0.1:
@@ -4691,6 +4699,8 @@ snapshots:
   postgres-interval@1.2.0:
     dependencies:
       xtend: 4.0.2
+
+  postgres@3.4.8: {}
 
   potpack@2.1.0: {}
 
