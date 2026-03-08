@@ -1,5 +1,3 @@
-// jsonwebtoken 설치 필요: npm install jsonwebtoken @types/jsonwebtoken
-// @ts-ignore - jsonwebtoken이 설치되지 않았을 수 있음
 import jwt from "jsonwebtoken";
 
 /**
