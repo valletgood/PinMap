@@ -2,13 +2,16 @@ import { type NextRequest } from "next/server";
 import { successResponse, errorResponse, ErrorCode } from "@/lib/api-response";
 import { type LocationSearchResponse } from "@/apis/location/types";
 
+/** 쿼리 파라미터(request.url) 사용으로 빌드 시 정적 렌더 불가 → 동적 라우트로 고정 */
+export const dynamic = "force-dynamic";
+
 /**
  * 네이버 장소 검색 API
  * GET /api/location/location-list?query=검색어
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get("query");
 
     // 검색어 유효성 검사
