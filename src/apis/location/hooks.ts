@@ -1,6 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { locationApi } from "./service";
 import type { NewSavedLocation } from "@/db/schema";
+import { compressImagesForUpload } from "@/lib/image-compress";
 
 export const useSearchLocation = (query: string, enabled = true) => {
   return useQuery({
@@ -30,7 +31,8 @@ export const useSaveLocation = () => {
 export const useUploadLocationImages = () => {
   return useMutation({
     mutationFn: async (files: File[]) => {
-      const response = await locationApi.saveImage(files);
+      const compressed = await compressImagesForUpload(files);
+      const response = await locationApi.saveImage(compressed);
       if (response.error !== 0) {
         throw new Error(response.message ?? "이미지 업로드에 실패했습니다.");
       }
