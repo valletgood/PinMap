@@ -1,7 +1,7 @@
 import { type NextRequest } from "next/server";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { savedLocation } from "@/db/schema";
+import { savedLocation, type NewSavedLocation } from "@/db/schema";
 import { successResponse, errorResponse, ErrorCode } from "@/lib/api-response";
 import { verifyToken } from "@/lib/jwt";
 
@@ -128,7 +128,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
     const [updated] = await db
       .update(savedLocation)
-      .set(updates as Parameters<typeof db.update>[1] extends object ? object : never)
+      .set(updates as Partial<NewSavedLocation>)
       .where(and(eq(savedLocation.id, idNum), eq(savedLocation.userId, payload.userUuid)))
       .returning();
 

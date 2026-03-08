@@ -21,14 +21,14 @@ export const authService = {
    * @returns 정규화된 응답 데이터 (user 정보)
    * @throws ApiError - 에러 발생 시
    */
-  signup: async (signupData: SignupRequest): Promise<SignupResponse> => {
+  signup: async (signupData: SignupRequest): Promise<ApiResponse<SignupResponse>> => {
     const response = await axiosInstance.post<ApiResponse<SignupResponse>>(
       "/api/auth/signup",
       signupData
     );
 
     // 응답 정규화
-    return normalizeResponse<ApiResponse<SignupResponse>>(response).data;
+    return normalizeResponse<ApiResponse<SignupResponse>>(response);
   },
 
   /**
@@ -37,12 +37,12 @@ export const authService = {
    * @returns 정규화된 응답 데이터 (user 정보 및 토큰)
    * @throws ApiError - 에러 발생 시
    */
-  login: async (loginData: LoginRequest): Promise<{ user: User; token: string }> => {
+  login: async (loginData: LoginRequest): Promise<ApiResponse<{ user: User; token: string }>> => {
     const response = await axiosInstance.post<ApiResponse<{ user: User; token: string }>>(
       "/api/auth/login",
       loginData
     );
 
-    return normalizeResponse<ApiResponse<{ user: User; token: string }>>(response).data;
+    return normalizeResponse<ApiResponse<{ user: User; token: string }>>(response);
   },
 };

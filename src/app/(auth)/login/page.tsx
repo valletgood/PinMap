@@ -74,10 +74,10 @@ export default function LoginPage() {
       {
         onSuccess: (data) => {
           // 토큰 저장 (응답에 토큰이 포함된 경우)
-          if (data.token && data.user) {
-            setToken(data.token);
+          if (data.data?.token && data.data?.user) {
+            setToken(data.data.token);
             // zustand 스토어에 로그인 상태 저장
-            login(data.user, data.token);
+            login(data.data.user, data.data.token);
           }
           router.push("/");
         },
