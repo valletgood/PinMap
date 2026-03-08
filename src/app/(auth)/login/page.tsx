@@ -79,7 +79,6 @@ export default function LoginPage() {
             // zustand 스토어에 로그인 상태 저장
             login(data.user, data.token);
           }
-          toast.success("로그인에 성공했습니다.");
           router.push("/");
         },
         onError: (error) => {
@@ -141,6 +140,12 @@ export default function LoginPage() {
                 onChange={(value: string) => setEmail(value)}
                 required
                 disabled={loginMutation.isPending}
+                onKeyDown={(e) => {
+                  if (!email.trim() || !password.trim() || loginMutation.isPending) return;
+                  if (e.key === "Enter") {
+                    handleLogin();
+                  }
+                }}
                 autoComplete="email"
                 aria-label="이메일 입력"
               />
@@ -151,6 +156,12 @@ export default function LoginPage() {
                 placeholder="비밀번호를 입력하세요"
                 value={password}
                 onChange={(value: string) => setPassword(value)}
+                onKeyDown={(e) => {
+                  if (!email.trim() || !password.trim() || loginMutation.isPending) return;
+                  if (e.key === "Enter") {
+                    handleLogin();
+                  }
+                }}
                 required
                 disabled={loginMutation.isPending}
                 autoComplete="current-password"
