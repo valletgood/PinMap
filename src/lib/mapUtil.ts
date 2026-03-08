@@ -69,14 +69,10 @@ export function applyScaleToMarkers(
   });
 }
 
-const FOOD_CATEGORIES = ["한식", "양식", "일식", "중식"];
-const DESSERT_CATEGORIES = ["카페", "디저트"];
-
+/** 검색된 장소 마커: 다크모드 → white, 라이트 → black */
 export const MARKER_ICONS = {
-  food: "/icons/map_food.png",
-  dessert: "/icons/map_dessert.png",
-  default: "/icons/map_default.png",
-  saved: "/icons/map_love.png",
+  defaultDark: "/icons/map_default_white.png",
+  savedDark: "/icons/map_favorite.svg",
 } as const;
 
 const MARKER_SIZE = { width: 63, height: 81 }; // 42x54 기준 1.5배
@@ -94,11 +90,14 @@ export function applyMarkerSize(el: HTMLElement, scale: number): void {
   el.style.height = `${MARKER_SIZE.height * scale}px`;
 }
 
-export function getMarkerIconUrl(category: string): string {
-  const normalized = category?.trim() ?? "";
-  if (FOOD_CATEGORIES.some((c) => normalized.includes(c))) return MARKER_ICONS.food;
-  if (DESSERT_CATEGORIES.some((c) => normalized.includes(c))) return MARKER_ICONS.dessert;
-  return MARKER_ICONS.default;
+/** 검색된 장소 마커 아이콘 (다크모드 여부에 따라 white/black) */
+export function getSearchMarkerIconUrl(): string {
+  return MARKER_ICONS.defaultDark;
+}
+
+/** 저장된 장소 마커 아이콘 (다크모드 → 별 흰색, 라이트 → 별 검정) */
+export function getSavedMarkerIconUrl(): string {
+  return MARKER_ICONS.savedDark;
 }
 
 export function findSavedMatch(

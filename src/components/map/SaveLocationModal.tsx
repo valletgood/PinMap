@@ -274,17 +274,12 @@ export function SaveLocationModal({ location, onClose, onComplete }: SaveLocatio
                 alt=""
                 width={28}
                 height={24}
-                className="h-6 w-7 object-contain"
+                className={cn("h-6 w-7 object-contain", darkMode && "brightness-0 invert")}
                 aria-hidden
               />
             </div>
           </div>
-          <h2
-            className={cn(
-              "text-[20px] font-bold",
-              darkMode ? "text-white" : "text-gray-800"
-            )}
-          >
+          <h2 className={cn("text-[20px] font-bold", darkMode ? "text-white" : "text-gray-800")}>
             {plainTitle}
           </h2>
           {address && (

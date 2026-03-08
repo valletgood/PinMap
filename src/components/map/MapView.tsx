@@ -20,9 +20,9 @@ import {
   FLY_TO_DURATION_SLOW,
   FLY_TO_ZOOM,
   getMapStyleUrl,
-  getMarkerIconUrl,
+  getSearchMarkerIconUrl,
+  getSavedMarkerIconUrl,
   getMarkerScale,
-  MARKER_ICONS,
   findSavedMatch,
   getModalDetailForLocation,
 } from "@/lib/mapUtil";
@@ -37,7 +37,7 @@ interface MapViewProps {
    */
   selectedLocation?: Location | null;
   /**
-   * 저장된 장소 목록 (마커는 map_love.png)
+   * 저장된 장소 목록 (마커는 map_favorite.svg, 다크모드에 따라 별 색상)
    */
   savedLocations?: SavedLocation[];
   /**
@@ -197,12 +197,12 @@ export function MapView({
     const map = mapRef.current!;
     const scale = getMarkerScale(map.getZoom());
 
-    // 각 검색 결과에 마커 추가 (저장된 장소는 saved 레이어에서만 그림 → 여기서는 제외하고 saved 마커 아이콘만 사용)
+    // 검색 결과: 저장된 장소 → map_favorite(별 색상은 다크모드에 따라), 그 외 → map_default_white/black
     searchResults.forEach((loc) => {
       const lng = Number(loc.mapx) / 1e7;
       const lat = Number(loc.mapy) / 1e7;
       const isSaved = !!findSavedMatch(loc, savedLocations);
-      const iconUrl = isSaved ? MARKER_ICONS.saved : getMarkerIconUrl(loc.category);
+      const iconUrl = isSaved ? getSavedMarkerIconUrl() : getSearchMarkerIconUrl();
 
       const el = createMarkerElement({
         iconUrl,
@@ -233,8 +233,8 @@ export function MapView({
     const lng = Number(selectedLocation.mapx) / 1e7;
     const lat = Number(selectedLocation.mapy) / 1e7;
     const iconUrl = findSavedMatch(selectedLocation, savedLocations)
-      ? MARKER_ICONS.saved
-      : getMarkerIconUrl(selectedLocation.category);
+      ? getSavedMarkerIconUrl()
+      : getSearchMarkerIconUrl();
 
     map.flyTo(createFlyToOptions([lng, lat]));
 
@@ -253,7 +253,7 @@ export function MapView({
     markersRef.current.push(marker);
   }, [selectedLocation, savedLocations]);
 
-  // 저장된 장소 마커 (map_love.png) — 지도 로드 완료(isMapReady) 후 또는 savedLocations 변경 시 실행
+  // 저장된 장소 마커 (map_favorite.svg) — 지도 로드 완료(isMapReady) 후 또는 savedLocations 변경 시 실행
   useEffect(() => {
     if (!mapRef.current || !isInitializedRef.current || !savedLocations?.length) {
       savedMarkersRef.current.forEach((m) => m.remove());
@@ -266,7 +266,7 @@ export function MapView({
 
     const map = mapRef.current;
     const scale = getMarkerScale(map.getZoom());
-    const iconUrl = MARKER_ICONS.saved;
+    const iconUrl = getSavedMarkerIconUrl();
 
     savedLocations.forEach((item) => {
       const lng = Number(item.longitude);
