@@ -10,14 +10,14 @@ import { Button } from "../ui/Button";
 import { DeleteModal } from "@/components/modal/DeleteModal";
 import { useDeleteLocation } from "@/apis/location/hooks";
 import { useQueryClient } from "@tanstack/react-query";
+import { useMapStyleStore } from "@/stores/mapStyleStore";
+import { cn } from "@/lib/utils";
 
 const ICON_MAP = "/icons/ico_map.svg";
 const ICON_LOVE = "/icons/ico_love.svg";
 const ICON_DELETE = "/icons/ico_delete.svg";
 const GLOW_CLASS = "absolute h-20 w-20 rounded-full bg-[#6f62cb]/25 blur-2xl";
 const BTN_BASE = "flex-1 rounded-xl px-4 py-3 text-sm font-semibold transition-colors";
-const BTN_SECONDARY = `${BTN_BASE} border border-gray-200 text-gray-800 hover:bg-gray-50`;
-const BTN_PRIMARY = `${BTN_BASE} text-white hover:bg-[#6357b8]`;
 
 export type ModalDetail =
   | { type: "search"; location: Location }
@@ -43,19 +43,31 @@ interface IconCircleProps {
   alt: string;
   showGlow?: boolean;
   imageClassName?: string;
+  darkMode?: boolean;
 }
 
-function IconCircle({ iconSrc, alt, showGlow = false, imageClassName = "h-7 w-7" }: IconCircleProps) {
+function IconCircle({
+  iconSrc,
+  alt,
+  showGlow = false,
+  imageClassName = "h-7 w-7",
+  darkMode = false,
+}: IconCircleProps) {
   return (
     <div className="relative mb-5 flex items-center justify-center">
       {showGlow && <div className={GLOW_CLASS} aria-hidden />}
-      <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-sm">
+      <div
+        className={cn(
+          "relative flex h-14 w-14 items-center justify-center rounded-full shadow-sm",
+          darkMode ? "bg-white/10" : "bg-white"
+        )}
+      >
         <Image
           src={iconSrc}
           alt={alt}
           width={28}
           height={28}
-          className={imageClassName}
+          className={cn(imageClassName, darkMode && "brightness-0 invert")}
           aria-hidden
         />
       </div>
@@ -63,16 +75,26 @@ function IconCircle({ iconSrc, alt, showGlow = false, imageClassName = "h-7 w-7"
   );
 }
 
-const LINK_CLASS = "text-[#6f62cb] underline underline-offset-2 hover:text-[#6357b8]";
+const LINK_CLASS =
+  "text-[#6f62cb] underline underline-offset-2 hover:text-[#6357b8]";
+const LINK_CLASS_DARK =
+  "text-[#a89ce8] underline underline-offset-2 hover:text-[#c4b8f5]";
 
 interface SearchDetailContentProps {
   location: Location;
   plainTitle: string;
   onClose: () => void;
   onSave?: () => void;
+  darkMode?: boolean;
 }
 
-function SearchDetailContent({ location, plainTitle, onClose, onSave }: SearchDetailContentProps) {
+function SearchDetailContent({
+  location,
+  plainTitle,
+  onClose,
+  onSave,
+  darkMode = false,
+}: SearchDetailContentProps) {
   const { link, category, description, roadAddress } = location;
   const hasLink = isNonEmpty(link);
   const hasCategory = isNonEmpty(category);
@@ -87,10 +109,22 @@ function SearchDetailContent({ location, plainTitle, onClose, onSave }: SearchDe
 
   return (
     <div className="flex flex-col items-center text-center">
-      <IconCircle iconSrc={ICON_MAP} alt="검색 아이콘" showGlow />
-      <h2 className="text-[20px] font-bold text-gray-800">{plainTitle}</h2>
+      <IconCircle iconSrc={ICON_MAP} alt="검색 아이콘" showGlow darkMode={darkMode} />
+      <h2
+        className={cn(
+          "text-[20px] font-bold",
+          darkMode ? "text-white" : "text-gray-800"
+        )}
+      >
+        {plainTitle}
+      </h2>
       {(hasDescriptionContent || hasLink) && (
-        <div className="mt-2 flex flex-col gap-0.5 text-md leading-relaxed text-gray-600">
+        <div
+          className={cn(
+            "mt-2 flex flex-col gap-0.5 text-md leading-relaxed",
+            darkMode ? "text-white/70" : "text-gray-600"
+          )}
+        >
           {descriptionParts.map((line) => (
             <p key={line}>{line}</p>
           ))}
@@ -99,7 +133,7 @@ function SearchDetailContent({ location, plainTitle, onClose, onSave }: SearchDe
               href={link}
               target="_blank"
               rel="noopener noreferrer"
-              className={`mt-1 text-sm font-medium ${LINK_CLASS}`}
+              className={cn("mt-1 text-sm font-medium", darkMode ? LINK_CLASS_DARK : LINK_CLASS)}
             >
               바로가기
             </a>
@@ -107,10 +141,19 @@ function SearchDetailContent({ location, plainTitle, onClose, onSave }: SearchDe
         </div>
       )}
       <div className="mt-6 flex w-full gap-3">
-        <Button onClick={onClose} variant="secondary" className={BTN_SECONDARY}>
+        <Button
+          onClick={onClose}
+          variant="secondary"
+          className={cn(
+            BTN_BASE,
+            darkMode
+              ? "border-white/30 bg-white/10 text-white hover:bg-white/20"
+              : "border border-gray-200 text-gray-800 hover:bg-gray-50"
+          )}
+        >
           닫기
         </Button>
-        <Button variant="primary" onClick={onSave} className={BTN_PRIMARY}>
+        <Button variant="primary" onClick={onSave} className={cn(BTN_BASE, "text-white hover:bg-[#6357b8]")}>
           저장
         </Button>
       </div>
@@ -123,18 +166,35 @@ interface SavedDetailContentProps {
   onClose: () => void;
   onEdit?: (item: SavedLocation) => void;
   onDeleteClick: () => void;
+  darkMode?: boolean;
 }
 
-function SavedDetailContent({ item, onClose, onEdit, onDeleteClick }: SavedDetailContentProps) {
+function SavedDetailContent({
+  item,
+  onClose,
+  onEdit,
+  onDeleteClick,
+  darkMode = false,
+}: SavedDetailContentProps) {
   const images = Array.isArray(item.images) ? item.images : [];
   const createdAtStr = formatCreatedAt(item.createdAt);
+  const textPrimary = darkMode ? "text-white" : "text-gray-800";
+  const textSecondary = darkMode ? "text-white/80" : "text-gray-700";
+  const labelClass = darkMode ? "text-white/70" : "text-gray-700";
 
   return (
     <div className="flex flex-col items-start text-left">
-      <IconCircle iconSrc={ICON_LOVE} alt="저장 아이콘" imageClassName="h-7 w-6 object-contain" />
+      <IconCircle
+        iconSrc={ICON_LOVE}
+        alt="저장 아이콘"
+        imageClassName="h-7 w-6 object-contain"
+        darkMode={darkMode}
+      />
 
       <div className="flex w-full items-center justify-between gap-2">
-        <h2 className="min-w-0 flex-1 truncate text-[20px] font-bold text-gray-800">{item.title}</h2>
+        <h2 className={cn("min-w-0 flex-1 truncate text-[20px] font-bold", textPrimary)}>
+          {item.title}
+        </h2>
         <Button
           variant="ghost"
           onClick={onDeleteClick}
@@ -151,25 +211,24 @@ function SavedDetailContent({ item, onClose, onEdit, onDeleteClick }: SavedDetai
         </Button>
       </div>
       {isNonEmpty(item.category) && (
-        <p className="mt-1 mr-auto text-md">
-          <span className="font-medium text-gray-700">{item.category}</span>
-        </p>
+        <p className={cn("mt-1 mr-auto text-md font-medium", textSecondary)}>{item.category}</p>
       )}
 
       {isNonEmpty(item.roadAddress) && (
-        <p className="mt-1 mr-auto text-md">
-          <span className="font-medium text-gray-700">{item.roadAddress}</span>
-        </p>
+        <p className={cn("mt-1 mr-auto text-md font-medium", textSecondary)}>{item.roadAddress}</p>
       )}
 
       {isNonEmpty(item.review) && (
         <div className="mt-1 w-full flex flex-col text-left">
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">나만의 리뷰</label>
+          <label className={cn("mb-1.5 block text-sm font-medium", labelClass)}>나만의 리뷰</label>
           <textarea
             readOnly
             value={item.review}
             rows={3}
-            className="w-full resize-none rounded-lg border border-[#6f62cb]/50 bg-transparent px-4 py-2.5 text-base leading-relaxed text-gray-900 transition-all duration-200"
+            className={cn(
+              "w-full resize-none rounded-lg border border-[#6f62cb]/50 bg-transparent px-4 py-2.5 text-base leading-relaxed transition-all duration-200",
+              darkMode ? "text-white border-white/30" : "text-gray-900"
+            )}
           />
         </div>
       )}
@@ -182,7 +241,10 @@ function SavedDetailContent({ item, onClose, onEdit, onDeleteClick }: SavedDetai
               href={url}
               target="_blank"
               rel="noopener noreferrer"
-              className="block overflow-hidden rounded-lg border border-gray-200"
+              className={cn(
+                "block overflow-hidden rounded-lg border",
+                darkMode ? "border-white/30" : "border-gray-200"
+              )}
             >
               <Image
                 src={url}
@@ -202,7 +264,7 @@ function SavedDetailContent({ item, onClose, onEdit, onDeleteClick }: SavedDetai
             href={item.link}
             target="_blank"
             rel="noopener noreferrer"
-            className={LINK_CLASS}
+            className={darkMode ? LINK_CLASS_DARK : LINK_CLASS}
           >
             바로가기
           </a>
@@ -210,13 +272,22 @@ function SavedDetailContent({ item, onClose, onEdit, onDeleteClick }: SavedDetai
       )}
 
       {createdAtStr && (
-        <p className="mr-auto mt-3 font-medium text-md text-gray-700">
-          <span className="">저장일</span> {createdAtStr}
+        <p className={cn("mr-auto mt-3 font-medium text-md", textSecondary)}>
+          <span>저장일</span> {createdAtStr}
         </p>
       )}
 
       <div className="mt-6 flex w-full gap-3">
-        <Button onClick={onClose} variant="secondary" className={BTN_SECONDARY}>
+        <Button
+          onClick={onClose}
+          variant="secondary"
+          className={cn(
+            BTN_BASE,
+            darkMode
+              ? "border-white/30 bg-white/10 text-white hover:bg-white/20"
+              : "border border-gray-200 text-gray-800 hover:bg-gray-50"
+          )}
+        >
           닫기
         </Button>
         {onEdit && (
@@ -226,7 +297,7 @@ function SavedDetailContent({ item, onClose, onEdit, onDeleteClick }: SavedDetai
               onEdit(item);
               onClose();
             }}
-            className={BTN_PRIMARY}
+            className={cn(BTN_BASE, "text-white hover:bg-[#6357b8]")}
           >
             수정
           </Button>
@@ -249,6 +320,7 @@ export function LocationDetailModal({ detail, onClose, onSave, onEdit }: Locatio
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const queryClient = useQueryClient();
   const deleteLocation = useDeleteLocation();
+  const mapDarkMode = useMapStyleStore((s) => s.mapDarkMode);
 
   const plainTitle = useMemo(() => {
     if (detail.type !== "search") return "";
@@ -270,14 +342,17 @@ export function LocationDetailModal({ detail, onClose, onSave, onEdit }: Locatio
     });
   };
 
+  const modalClassName = mapDarkMode ? "bg-black/60 border-black" : "";
+
   if (isSearch) {
     return (
-      <Modal isOpen={true} title="" onClose={onClose}>
+      <Modal isOpen={true} title="" onClose={onClose} className={modalClassName}>
         <SearchDetailContent
           location={detail.location}
           plainTitle={plainTitle}
           onClose={onClose}
           onSave={onSave}
+          darkMode={mapDarkMode}
         />
       </Modal>
     );
@@ -285,12 +360,13 @@ export function LocationDetailModal({ detail, onClose, onSave, onEdit }: Locatio
 
   const item = detail.location;
   return (
-    <Modal isOpen={true} title="" onClose={onClose}>
+    <Modal isOpen={true} title="" onClose={onClose} className={modalClassName}>
       <SavedDetailContent
         item={item}
         onClose={onClose}
         onEdit={onEdit}
         onDeleteClick={() => setShowDeleteConfirm(true)}
+        darkMode={mapDarkMode}
       />
       <DeleteModal
         isOpen={showDeleteConfirm}

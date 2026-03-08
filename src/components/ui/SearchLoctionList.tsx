@@ -7,6 +7,7 @@ import { cn, stripHtmlTags } from "@/lib/utils";
 import { Button } from "./Button";
 import { useLocationStore } from "@/stores/locationStore";
 import type { SavedLocation } from "@/db/schema";
+import { useMapStyleStore } from "@/stores/mapStyleStore";
 
 const COORD_EPS = 0.00002; // 약 2m 오차 허용
 
@@ -59,6 +60,7 @@ export function SearchLoctionList({
   onSelect,
   className = "",
 }: SearchLoctionListProps) {
+  const { mapDarkMode } = useMapStyleStore();
   if (!data || data.length === 0) {
     return null;
   }
@@ -82,11 +84,15 @@ export function SearchLoctionList({
             variant="secondary"
             onClick={() => handleLocationClick(location)}
             className={cn(
-              "w-full text-left px-4 py-3 rounded-xl",
-              "bg-white/40 backdrop-blur-sm",
-              "hover:bg-white/60 active:bg-white/50",
+              "w-full text-left px-4 py-3 rounded-xl backdrop-blur-sm border",
+              mapDarkMode ? "bg-black/0" : "bg-white/40",
+              mapDarkMode
+                ? "hover:bg-black/10 active:bg-black/20"
+                : "hover:bg-white/60 active:bg-white/50",
               "transition-all duration-200",
-              "border border-white/30 hover:border-white/50",
+              mapDarkMode
+                ? "border-black/30 hover:border-black/50"
+                : "border-white/30 hover:border-white/50",
               "animate-list-item-in"
             )}
             style={{
@@ -135,29 +141,49 @@ export function SearchLoctionList({
                 </div>
               </div>
 
-            {/* 장소 정보 */}
-            <div className="flex-1 min-w-0">
-              <h3 className="text-base font-semibold text-gray-900 truncate flex items-end gap-2 truncate">
-                {location.title.replace(/<[^>]*>/g, "")}
-                {location.category && (
-                  <p className="text-xs text-gray-500 mb-1">
-                    {location.category.split(">").pop()?.trim()}
+              {/* 장소 정보 */}
+              <div className="flex-1 min-w-0">
+                <h3
+                  className={cn(
+                    "text-base font-semibold truncate flex items-end gap-2",
+                    mapDarkMode ? "text-white" : "text-gray-900"
+                  )}
+                >
+                  {location.title.replace(/<[^>]*>/g, "")}
+                  {location.category && (
+                    <p
+                      className={cn(
+                        "text-xs mb-1",
+                        mapDarkMode ? "text-white/60" : "text-gray-500"
+                      )}
+                    >
+                      {location.category.split(">").pop()?.trim()}
+                    </p>
+                  )}
+                </h3>
+                {location.roadAddress && (
+                  <p
+                    className={cn(
+                      "text-sm mt-1 truncate",
+                      mapDarkMode ? "text-white/70" : "text-gray-600"
+                    )}
+                  >
+                    {location.roadAddress}
                   </p>
                 )}
-              </h3>
-              {location.roadAddress && (
-                <p className="text-sm text-gray-600 mt-1 truncate">{location.roadAddress}</p>
-              )}
+              </div>
             </div>
-          </div>
-        </Button>
+          </Button>
         );
       })}
       <div className="flex justify-end">
         <Button
           variant="ghost"
           onClick={() => onSelect?.(null)}
-          className="text-sm px-4 py-1 underline"
+          className={cn(
+            "text-sm px-4 py-1 underline",
+            mapDarkMode ? "text-white/80 hover:text-white hover:bg-white/10" : "text-gray-600 hover:text-gray-900"
+          )}
         >
           닫기
         </Button>

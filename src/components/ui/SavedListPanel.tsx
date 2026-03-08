@@ -7,6 +7,7 @@ import type { SavedLocation } from "@/db/schema";
 import { Button } from "./Button";
 import { useDeleteLocation } from "@/apis/location/hooks";
 import { DeleteModal } from "@/components/modal/DeleteModal";
+import { useMapStyleStore } from "@/stores/mapStyleStore";
 import Image from "next/image";
 
 const SAVE_CATEGORIES = ["맛집", "카페", "관광지", "쇼핑", "기타"] as const;
@@ -46,6 +47,7 @@ export function SavedListPanel({
   const [itemToDelete, setItemToDelete] = useState<SavedLocation | null>(null);
   const queryClient = useQueryClient();
   const deleteLocation = useDeleteLocation();
+  const mapDarkMode = useMapStyleStore((s) => s.mapDarkMode);
 
   const categoriesWithCount = useMemo(
     () => getCategoriesWithCount(savedLocations),
@@ -94,18 +96,26 @@ export function SavedListPanel({
           }
         }}
         className={cn(
-          "fixed bottom-6 left-4 z-40 flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-all p-0",
-          "bg-white/60 backdrop-blur-md border border-white/50",
-          "hover:bg-white/80 active:scale-95",
+          "fixed bottom-6 left-4 z-40 flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-all p-0 backdrop-blur-md",
+          mapDarkMode
+            ? "bg-black/60 border-black hover:bg-black/70 active:bg-black/80"
+            : "bg-white/60 border border-white/50 hover:bg-white/80 active:bg-white/90",
+          "border active:scale-95",
           "focus:ring-2 focus:ring-[#6f62cb] focus:ring-inset focus:ring-offset-0 focus:outline-none",
-          isOpen ? "text-gray-600" : "text-[#6f62cb]",
+          isOpen
+            ? mapDarkMode
+              ? "text-white/90"
+              : "text-gray-600"
+            : mapDarkMode
+              ? "text-[#a89ce8]"
+              : "text-[#6f62cb]",
           className
         )}
         aria-label={isOpen ? "저장 목록 닫기" : "저장 목록 열기"}
         aria-expanded={isOpen}
       >
         {isOpen ? (
-          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="h-6 w-6" fill="none" stroke="#6f62cb" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -114,7 +124,7 @@ export function SavedListPanel({
             />
           </svg>
         ) : (
-          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="h-6 w-6" fill="none" stroke="#6f62cb" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -128,18 +138,38 @@ export function SavedListPanel({
       {/* 패널: 최대 높이 50vh, 카테고리(좌) + 장소 목록(우) */}
       {isOpen && (
         <div
-          className="fixed bottom-20 left-4 right-4 z-30 max-h-[50vh] overflow-hidden rounded-2xl border border-white/40 bg-white/70 shadow-xl backdrop-blur-md md:left-4 md:right-auto md:min-w-[320px] md:max-w-[420px]"
+          className={cn(
+            "fixed bottom-20 left-4 right-4 z-30 max-h-[50vh] overflow-hidden rounded-2xl shadow-xl backdrop-blur-md md:left-4 md:right-auto md:min-w-[320px] md:max-w-[420px] border",
+            mapDarkMode ? "bg-black/60 border-black" : "border-white/40 bg-white/70"
+          )}
           role="dialog"
           aria-label="저장한 장소 목록"
         >
           <div className="flex h-full max-h-[50vh] flex-col md:flex-row">
             {/* 카테고리 목록 */}
-            <div className="flex-shrink-0 border-b border-white/50 p-2 md:border-b-0 md:border-r md:border-white/50 md:p-2">
-              <p className="mb-2 px-2 text-xs font-medium uppercase tracking-wider text-gray-500">
+            <div
+              className={cn(
+                "flex-shrink-0 border-b p-2 md:border-b-0 md:border-r md:p-2",
+                mapDarkMode ? "border-white/20" : "border-white/50"
+              )}
+            >
+              <p
+                className={cn(
+                  "mb-2 px-2 text-xs font-medium uppercase tracking-wider",
+                  mapDarkMode ? "text-white/70" : "text-gray-500"
+                )}
+              >
                 카테고리
               </p>
               {!hasItems ? (
-                <p className="px-2 py-4 text-sm text-gray-500">저장한 장소가 없습니다.</p>
+                <p
+                  className={cn(
+                    "px-2 py-4 text-sm",
+                    mapDarkMode ? "text-white/60" : "text-gray-500"
+                  )}
+                >
+                  저장한 장소가 없습니다.
+                </p>
               ) : (
                 <ul className="space-y-0.5 overflow-y-auto">
                   {categoriesWithCount.map(({ category, count }, index) => (
@@ -158,14 +188,20 @@ export function SavedListPanel({
                           "focus:ring-2 focus:ring-[#6f62cb] focus:ring-inset focus:ring-offset-0 focus:outline-none",
                           selectedCategory === category
                             ? "bg-[#6f62cb]/25 text-[#6f62cb]"
-                            : "text-gray-700 hover:bg-white/60"
+                            : mapDarkMode
+                              ? "text-white/90 hover:bg-white/10"
+                              : "text-gray-700 hover:bg-white/60"
                         )}
                       >
                         <span className="truncate">{category}</span>
                         <span
                           className={cn(
                             "ml-1.5 text-xs",
-                            selectedCategory === category ? "text-[#6f62cb]/80" : "text-gray-400"
+                            selectedCategory === category
+                              ? "text-[#6f62cb]/80"
+                              : mapDarkMode
+                                ? "text-white/60"
+                                : "text-gray-400"
                           )}
                         >
                           {count}
@@ -181,7 +217,12 @@ export function SavedListPanel({
             <div className="flex min-h-0 flex-1 flex-col">
               {selectedCategory ? (
                 <>
-                  <p className="flex-shrink-0 px-3 py-2 text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <p
+                    className={cn(
+                      "flex-shrink-0 px-3 py-2 text-xs font-medium uppercase tracking-wider",
+                      mapDarkMode ? "text-white/70" : "text-gray-500"
+                    )}
+                  >
                     {selectedCategory} 목록
                   </p>
                   <ul className="max-h-[calc(5*3.5rem)] min-h-0 flex-1 space-y-1 overflow-y-auto p-2">
@@ -195,18 +236,29 @@ export function SavedListPanel({
                           variant="secondary"
                           onClick={() => handleSelectItem(item)}
                           className={cn(
-                            "flex items-start justify-between min-w-0 flex-1 rounded-xl border border-white/40 bg-white/50 px-3 py-2.5 text-left backdrop-blur-sm",
-                            "hover:bg-white/70 hover:border-white/60 active:bg-white/60",
-                            "focus:ring-2 focus:ring-[#6f62cb] focus:ring-inset focus:ring-offset-0 focus:outline-none",
-                            "transition-colors"
+                            "flex items-start justify-between min-w-0 flex-1 rounded-xl border px-3 py-2.5 text-left backdrop-blur-sm",
+                            "focus:ring-2 focus:ring-[#6f62cb] focus:ring-inset focus:ring-offset-0 focus:outline-none transition-colors",
+                            mapDarkMode
+                              ? "bg-black/20 border-white/20 hover:bg-black/30 hover:border-white/30 active:bg-black/40"
+                              : "border-white/40 bg-white/50 hover:bg-white/70 hover:border-white/60 active:bg-white/60"
                           )}
                         >
                           <div className="flex flex-col">
-                            <span className="block truncate font-medium text-gray-900">
+                            <span
+                              className={cn(
+                                "block truncate font-medium",
+                                mapDarkMode ? "text-white" : "text-gray-900"
+                              )}
+                            >
                               {item.title}
                             </span>
                             {item.roadAddress && (
-                              <span className="mt-0.5 block truncate text-xs text-gray-500">
+                              <span
+                                className={cn(
+                                  "mt-0.5 block truncate text-xs",
+                                  mapDarkMode ? "text-white/60" : "text-gray-500"
+                                )}
+                              >
                                 {item.roadAddress}
                               </span>
                             )}
@@ -226,7 +278,12 @@ export function SavedListPanel({
                   </ul>
                 </>
               ) : (
-                <div className="flex flex-1 items-center justify-center p-4 text-center text-sm text-gray-500">
+                <div
+                  className={cn(
+                    "flex flex-1 items-center justify-center p-4 text-center text-sm",
+                    mapDarkMode ? "text-white/60" : "text-gray-500"
+                  )}
+                >
                   카테고리를 선택하면 장소 목록이 여기에 표시됩니다.
                 </div>
               )}

@@ -7,6 +7,8 @@ import Image from "next/image";
 import type { SavedLocation } from "@/db/schema";
 import { useEditLocation, useUploadLocationImages } from "@/apis/location/hooks";
 import { useQueryClient } from "@tanstack/react-query";
+import { useMapStyleStore } from "@/stores/mapStyleStore";
+import { cn } from "@/lib/utils";
 
 const SAVE_CATEGORIES = ["맛집", "카페", "관광지", "쇼핑", "기타"] as const;
 type SaveCategory = (typeof SAVE_CATEGORIES)[number];
@@ -81,6 +83,7 @@ export function EditLocationModal({ savedLocation, onClose, onComplete }: EditLo
 
   const { mutateAsync: uploadImages } = useUploadLocationImages();
   const { mutate: editLocation } = useEditLocation();
+  const mapDarkMode = useMapStyleStore((s) => s.mapDarkMode);
 
   const removeImageUrl = useCallback((index: number) => {
     setImageUrls((prev) => prev.filter((_, i) => i !== index));
@@ -138,25 +141,39 @@ export function EditLocationModal({ savedLocation, onClose, onComplete }: EditLo
     }
   };
 
+  const modalClassName = mapDarkMode ? "bg-black/60 border-black" : "";
+
   return (
-    <Modal isOpen={true} title="" onClose={onClose}>
+    <Modal isOpen={true} title="" onClose={onClose} className={modalClassName}>
       <div className="flex max-h-[70vh] flex-col">
         <div className="shrink-0 flex flex-col">
           <div className="relative mb-5 flex justify-start">
-            <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-white">
+            <div
+              className={cn(
+                "relative flex h-12 w-12 items-center justify-center rounded-full",
+                mapDarkMode ? "bg-white/10" : "bg-white"
+              )}
+            >
               <Image
                 src="/icons/ico_love.svg"
                 alt=""
                 width={28}
                 height={24}
-                className="h-6 w-7 object-contain"
+                className={cn("h-6 w-7 object-contain", mapDarkMode && "brightness-0 invert")}
                 aria-hidden
               />
             </div>
           </div>
-          <h2 className="text-[20px] font-bold text-gray-800">{savedLocation.title}</h2>
+          <h2 className={cn("text-[20px] font-bold", mapDarkMode ? "text-white" : "text-gray-800")}>
+            {savedLocation.title}
+          </h2>
           {savedLocation.roadAddress && (
-            <p className="mt-1 text-sm leading-relaxed text-gray-800">
+            <p
+              className={cn(
+                "mt-1 text-sm leading-relaxed",
+                mapDarkMode ? "text-white/80" : "text-gray-800"
+              )}
+            >
               {savedLocation.roadAddress}
             </p>
           )}
@@ -165,12 +182,26 @@ export function EditLocationModal({ savedLocation, onClose, onComplete }: EditLo
         <div className="mt-5 min-h-0 flex-1 overflow-y-auto pr-1">
           <div className="flex w-full flex-col gap-5">
             <fieldset className="flex w-full flex-col items-start">
-              <legend className="mb-1.5 text-sm font-medium text-gray-700">별점</legend>
+              <legend
+                className={cn(
+                  "mb-1.5 text-sm font-medium",
+                  mapDarkMode ? "text-white/70" : "text-gray-700"
+                )}
+              >
+                별점
+              </legend>
               <StarRating value={rating} onChange={setRating} />
             </fieldset>
 
             <fieldset className="flex w-full flex-col items-start">
-              <legend className="mb-1.5 text-sm font-medium text-gray-700">이미지</legend>
+              <legend
+                className={cn(
+                  "mb-1.5 text-sm font-medium",
+                  mapDarkMode ? "text-white/70" : "text-gray-700"
+                )}
+              >
+                이미지
+              </legend>
               <div className="flex flex-wrap gap-2">
                 {imageUrls.map((url, i) => (
                   <div key={i} className="relative">
@@ -178,7 +209,10 @@ export function EditLocationModal({ savedLocation, onClose, onComplete }: EditLo
                       href={url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block overflow-hidden rounded-lg border border-gray-200"
+                      className={cn(
+                        "block overflow-hidden rounded-lg border",
+                        mapDarkMode ? "border-white/30" : "border-gray-200"
+                      )}
                     >
                       <Image
                         src={url}
@@ -200,7 +234,14 @@ export function EditLocationModal({ savedLocation, onClose, onComplete }: EditLo
                 ))}
                 {newFiles.map((file, i) => (
                   <div key={`new-${i}`} className="relative">
-                    <div className="flex h-20 w-20 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-xs text-gray-500">
+                    <div
+                      className={cn(
+                        "flex h-20 w-20 items-center justify-center rounded-lg border border-dashed text-xs",
+                        mapDarkMode
+                          ? "border-white/30 bg-black/20 text-white/60"
+                          : "border-gray-300 bg-gray-50 text-gray-500"
+                      )}
+                    >
                       새 이미지
                     </div>
                     <Button
@@ -213,7 +254,14 @@ export function EditLocationModal({ savedLocation, onClose, onComplete }: EditLo
                     </Button>
                   </div>
                 ))}
-                <label className="flex h-20 w-20 cursor-pointer items-center justify-center rounded-lg border border-dashed border-[#6f62cb]/50 bg-[#6f62cb]/5 text-sm text-[#6f62cb] hover:bg-[#6f62cb]/10">
+                <label
+                  className={cn(
+                    "flex h-20 w-20 cursor-pointer items-center justify-center rounded-lg border border-dashed text-sm transition-colors",
+                    mapDarkMode
+                      ? "border-white/30 bg-white/5 text-white/80 hover:bg-white/10"
+                      : "border-[#6f62cb]/50 bg-[#6f62cb]/5 text-[#6f62cb] hover:bg-[#6f62cb]/10"
+                  )}
+                >
                   추가
                   <input
                     type="file"
@@ -227,7 +275,14 @@ export function EditLocationModal({ savedLocation, onClose, onComplete }: EditLo
             </fieldset>
 
             <fieldset className="flex w-full flex-col items-start">
-              <legend className="mb-1.5 text-sm font-medium text-gray-700">카테고리</legend>
+              <legend
+                className={cn(
+                  "mb-1.5 text-sm font-medium",
+                  mapDarkMode ? "text-white/70" : "text-gray-700"
+                )}
+              >
+                카테고리
+              </legend>
               <div className="flex flex-wrap gap-2">
                 {SAVE_CATEGORIES.map((cat) => (
                   <Button
@@ -235,11 +290,14 @@ export function EditLocationModal({ savedLocation, onClose, onComplete }: EditLo
                     type="button"
                     variant="primary"
                     onClick={() => setCategory(cat)}
-                    className={`rounded-xl px-3.5 py-1.5 text-sm font-medium border border-[#6f62cb]/50 transition-all ${
+                    className={cn(
+                      "rounded-xl px-3.5 py-1.5 text-sm font-medium border border-[#6f62cb]/50 transition-all",
                       category === cat
                         ? "bg-[#6f62cb] text-white"
-                        : "bg-transparent text-gray-600 hover:bg-[#6f62cb]/10 hover:text-[#6f62cb]"
-                    }`}
+                        : mapDarkMode
+                          ? "bg-transparent text-white/80 hover:bg-[#6f62cb]/20 hover:text-white"
+                          : "bg-transparent text-gray-600 hover:bg-[#6f62cb]/10 hover:text-[#6f62cb]"
+                    )}
                   >
                     {cat}
                   </Button>
@@ -250,7 +308,10 @@ export function EditLocationModal({ savedLocation, onClose, onComplete }: EditLo
             <div className="flex w-full flex-col">
               <label
                 htmlFor="edit-review"
-                className="mb-1.5 block text-sm font-medium text-gray-700"
+                className={cn(
+                  "mb-1.5 block text-sm font-medium",
+                  mapDarkMode ? "text-white/70" : "text-gray-700"
+                )}
               >
                 나만의 리뷰
               </label>
@@ -260,7 +321,12 @@ export function EditLocationModal({ savedLocation, onClose, onComplete }: EditLo
                 onChange={(e) => setReview(e.target.value)}
                 placeholder="이 장소에 대한 나만의 리뷰를 작성해보세요"
                 rows={3}
-                className="w-full resize-none rounded-lg border border-[#6f62cb]/50 bg-transparent px-4 py-2.5 text-base leading-relaxed text-gray-900 placeholder:text-gray-400 transition-all duration-200 focus:border-[#6f62cb] focus:outline-none"
+                className={cn(
+                  "w-full resize-none rounded-lg border border-[#6f62cb]/50 bg-transparent px-4 py-2.5 text-base leading-relaxed transition-all duration-200 focus:border-[#6f62cb] focus:outline-none",
+                  mapDarkMode
+                    ? "text-white placeholder:text-white/50 border-white/30"
+                    : "text-gray-900 placeholder:text-gray-400"
+                )}
               />
             </div>
           </div>
@@ -268,7 +334,7 @@ export function EditLocationModal({ savedLocation, onClose, onComplete }: EditLo
       </div>
 
       {submitError && (
-        <p className="mt-3 text-sm text-red-600" role="alert">
+        <p className="mt-3 text-sm text-red-500" role="alert">
           {submitError}
         </p>
       )}
@@ -278,7 +344,12 @@ export function EditLocationModal({ savedLocation, onClose, onComplete }: EditLo
           variant="secondary"
           onClick={onClose}
           disabled={isSubmitting}
-          className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold"
+          className={cn(
+            "flex-1 rounded-xl px-4 py-3 text-sm font-semibold",
+            mapDarkMode
+              ? "border-white/30 bg-white/10 text-white hover:bg-white/20"
+              : "border border-gray-200"
+          )}
         >
           취소
         </Button>

@@ -4,12 +4,13 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { type Location } from "@/apis/location/types";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
-import { stripHtmlTags } from "@/lib/utils";
+import { stripHtmlTags, cn } from "@/lib/utils";
 import Image from "next/image";
 import { type NewSavedLocation } from "@/db/schema";
 import { useAuthStore } from "@/stores/authStore";
 import { useSaveLocation, useUploadLocationImages } from "@/apis/location/hooks";
 import { useQueryClient } from "@tanstack/react-query";
+import { useMapStyleStore } from "@/stores/mapStyleStore";
 
 const SAVE_CATEGORIES = ["맛집", "카페", "관광지", "쇼핑", "기타"] as const;
 type SaveCategory = (typeof SAVE_CATEGORIES)[number];
@@ -72,9 +73,11 @@ function StarRating({ value, onChange }: { value: number; onChange: (v: number) 
 function ImageUploader({
   images,
   onChange,
+  darkMode = false,
 }: {
   images: File[];
   onChange: (files: File[]) => void;
+  darkMode?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
@@ -122,7 +125,10 @@ function ImageUploader({
         {previewUrls.map((url, i) => (
           <div
             key={url}
-            className="group relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-gray-200"
+            className={cn(
+              "group relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border",
+              darkMode ? "border-white/30" : "border-gray-200"
+            )}
           >
             {/* blob 미리보기: createObjectURL 캐시로 매 렌더 생성 방지, next/image 대신 img로 모바일 성능 개선 */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -159,7 +165,10 @@ function ImageUploader({
         <Button
           variant="ghost"
           onClick={() => inputRef.current?.click()}
-          className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-[#6f62cb]/30 transition-colors hover:border-[#6f62cb] hover:text-[#6f62cb]"
+          className={cn(
+            "flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border-2 border-dashed transition-colors hover:border-[#6f62cb] hover:text-[#6f62cb]",
+            darkMode ? "border-white/30" : "border-[#6f62cb]/30"
+          )}
           aria-label="이미지 추가"
         >
           <svg
@@ -199,6 +208,7 @@ export function SaveLocationModal({ location, onClose, onComplete }: SaveLocatio
   const { user } = useAuthStore();
   const { mutateAsync: uploadImages } = useUploadLocationImages();
   const { mutate: saveLocation } = useSaveLocation();
+  const mapDarkMode = useMapStyleStore((s) => s.mapDarkMode);
 
   const plainTitle = stripHtmlTags(location.title) || "위치 정보";
   const address = location.roadAddress || location.address || "";
@@ -243,14 +253,22 @@ export function SaveLocationModal({ location, onClose, onComplete }: SaveLocatio
     }
   };
 
+  const darkMode = mapDarkMode;
+  const modalClassName = darkMode ? "bg-black/60 border-black" : "";
+
   return (
-    <Modal isOpen={true} title="" onClose={onClose}>
+    <Modal isOpen={true} title="" onClose={onClose} className={modalClassName}>
       <div className="flex max-h-[70vh] flex-col">
         {/* 상단: 아이콘 + 타이틀 + 주소 (고정) */}
         <div className="shrink-0 flex flex-col">
           <div className="relative mb-5 flex justify-start">
             <div className="absolute h-20 w-20 rounded-full" aria-hidden />
-            <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-white">
+            <div
+              className={cn(
+                "relative flex h-12 w-12 items-center justify-center rounded-full",
+                darkMode ? "bg-white/10" : "bg-white"
+              )}
+            >
               <Image
                 src="/icons/ico_love.svg"
                 alt=""
@@ -261,8 +279,24 @@ export function SaveLocationModal({ location, onClose, onComplete }: SaveLocatio
               />
             </div>
           </div>
-          <h2 className="text-[20px] font-bold text-gray-800">{plainTitle}</h2>
-          {address && <p className="mt-1 text-sm leading-relaxed text-gray-800">{address}</p>}
+          <h2
+            className={cn(
+              "text-[20px] font-bold",
+              darkMode ? "text-white" : "text-gray-800"
+            )}
+          >
+            {plainTitle}
+          </h2>
+          {address && (
+            <p
+              className={cn(
+                "mt-1 text-sm leading-relaxed",
+                darkMode ? "text-white/80" : "text-gray-800"
+              )}
+            >
+              {address}
+            </p>
+          )}
         </div>
 
         {/* 별점 ~ 나만의 리뷰: 스크롤 영역 */}
@@ -270,30 +304,54 @@ export function SaveLocationModal({ location, onClose, onComplete }: SaveLocatio
           <div className="flex w-full flex-col gap-5">
             {/* 1. 별점 */}
             <fieldset className="flex w-full flex-col items-start">
-              <legend className="mb-1.5 text-sm font-medium text-gray-700">별점</legend>
+              <legend
+                className={cn(
+                  "mb-1.5 text-sm font-medium",
+                  darkMode ? "text-white/70" : "text-gray-700"
+                )}
+              >
+                별점
+              </legend>
               <StarRating value={rating} onChange={setRating} />
             </fieldset>
 
             {/* 2. 이미지 */}
             <fieldset className="flex w-full flex-col items-start">
-              <legend className="mb-1.5 text-sm font-medium text-gray-700">이미지</legend>
-              <ImageUploader images={images} onChange={setImages} />
+              <legend
+                className={cn(
+                  "mb-1.5 text-sm font-medium",
+                  darkMode ? "text-white/70" : "text-gray-700"
+                )}
+              >
+                이미지
+              </legend>
+              <ImageUploader images={images} onChange={setImages} darkMode={darkMode} />
             </fieldset>
 
             {/* 3. 카테고리 */}
             <fieldset className="flex w-full flex-col items-start">
-              <legend className="mb-1.5 text-sm font-medium text-gray-700">카테고리</legend>
+              <legend
+                className={cn(
+                  "mb-1.5 text-sm font-medium",
+                  darkMode ? "text-white/70" : "text-gray-700"
+                )}
+              >
+                카테고리
+              </legend>
               <div className="flex flex-wrap gap-2">
                 {SAVE_CATEGORIES.map((cat) => (
                   <Button
                     key={cat}
                     variant="primary"
                     onClick={() => setCategory(cat)}
-                    className={`rounded-xl px-3.5 py-1.5 text-sm font-medium border border-[#6f62cb]/50 transition-all ${
+                    className={cn(
+                      "rounded-xl px-3.5 py-1.5 text-sm font-medium border border-[#6f62cb]/50 transition-all",
                       category === cat
                         ? "bg-[#6f62cb] text-white"
-                        : "bg-transparent text-gray-600 hover:bg-[#6f62cb]/10 hover:text-[#6f62cb]"
-                    }`}
+                        : darkMode
+                          ? "bg-transparent text-white/80 hover:bg-[#6f62cb]/20 hover:text-white"
+                          : "bg-transparent text-gray-600 hover:bg-[#6f62cb]/10 hover:text-[#6f62cb]"
+                    )}
                   >
                     {cat}
                   </Button>
@@ -305,7 +363,10 @@ export function SaveLocationModal({ location, onClose, onComplete }: SaveLocatio
             <div className="flex w-full flex-col">
               <label
                 htmlFor="save-review"
-                className="mb-1.5 block text-sm font-medium text-gray-700"
+                className={cn(
+                  "mb-1.5 block text-sm font-medium",
+                  darkMode ? "text-white/70" : "text-gray-700"
+                )}
               >
                 나만의 리뷰
               </label>
@@ -315,7 +376,12 @@ export function SaveLocationModal({ location, onClose, onComplete }: SaveLocatio
                 onChange={(e) => setReview(e.target.value)}
                 placeholder="이 장소에 대한 나만의 리뷰를 작성해보세요"
                 rows={3}
-                className="w-full resize-none rounded-lg border border-[#6f62cb]/50 bg-transparent px-4 py-2.5 text-base leading-relaxed text-gray-900 placeholder:text-gray-400 transition-all duration-200 hover:border-purple-400 focus:border-[#6f62cb] focus:outline-none"
+                className={cn(
+                  "w-full resize-none rounded-lg border border-[#6f62cb]/50 bg-transparent px-4 py-2.5 text-base leading-relaxed transition-all duration-200 hover:border-purple-400 focus:border-[#6f62cb] focus:outline-none",
+                  darkMode
+                    ? "text-white placeholder:text-white/50 border-white/30"
+                    : "text-gray-900 placeholder:text-gray-400"
+                )}
               />
             </div>
           </div>
@@ -323,7 +389,7 @@ export function SaveLocationModal({ location, onClose, onComplete }: SaveLocatio
       </div>
 
       {submitError && (
-        <p className="mt-3 text-sm text-red-600" role="alert">
+        <p className="mt-3 text-sm text-red-500" role="alert">
           {submitError}
         </p>
       )}
@@ -334,7 +400,12 @@ export function SaveLocationModal({ location, onClose, onComplete }: SaveLocatio
           variant="secondary"
           onClick={onClose}
           disabled={isSubmitting}
-          className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold"
+          className={cn(
+            "flex-1 rounded-xl px-4 py-3 text-sm font-semibold",
+            darkMode
+              ? "border-white/30 bg-white/10 text-white hover:bg-white/20"
+              : "border border-gray-200"
+          )}
         >
           취소
         </Button>

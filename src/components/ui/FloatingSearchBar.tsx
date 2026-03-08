@@ -7,6 +7,7 @@ import { Input } from "./Input";
 import { SearchLoctionList } from "./SearchLoctionList";
 import { type Location } from "@/apis/location/types";
 import type { SavedLocation } from "@/db/schema";
+import { useMapStyleStore } from "@/stores/mapStyleStore";
 
 /**
  * FloatingSearchBar 컴포넌트
@@ -70,6 +71,7 @@ export const FloatingSearchBar = React.memo<FloatingSearchBarProps>(
   }) => {
     const [query, setQuery] = useState("");
     const hasResults = searchResults && searchResults.length > 0;
+    const { mapDarkMode } = useMapStyleStore();
 
     const handleChange = (value: string) => {
       setQuery(value);
@@ -85,7 +87,12 @@ export const FloatingSearchBar = React.memo<FloatingSearchBarProps>(
       <div className={cn("fixed top-0 left-0 right-0 z-50 px-4 pt-4 md:px-6 md:pt-6", className)}>
         <div className="max-w-2xl mx-auto" aria-label="맛집 검색">
           {/* 검색바 - 항상 rounded-full 유지 */}
-          <div className="bg-white/60 backdrop-blur-sm shadow-lg border border-gray rounded-full">
+          <div
+            className={cn(
+              "backdrop-blur-sm shadow-lg border rounded-full",
+              mapDarkMode ? "bg-black/60 border-black" : "bg-white/60 border-gray"
+            )}
+          >
             <div className="flex items-center gap-3 px-2 py-2 md:px-5 md:py-1">
               <Input
                 type="text"
@@ -96,6 +103,9 @@ export const FloatingSearchBar = React.memo<FloatingSearchBarProps>(
                 showClearButton={true}
                 className={cn(
                   "flex-1 bg-transparent text-gray-900 placeholder:text-gray-400",
+                  mapDarkMode
+                    ? "text-white placeholder:text-white/50"
+                    : "text-gray-900 placeholder:text-gray-400",
                   "px-2 py-1",
                   "border-none",
                   "rounded-full",
@@ -141,7 +151,12 @@ export const FloatingSearchBar = React.memo<FloatingSearchBarProps>(
 
           {/* 결과 영역 - 검색바 아래 별도 카드 */}
           {(isFetching || hasResults) && (
-            <div className="mt-2 bg-white/60 backdrop-blur-sm shadow-lg border border-gray rounded-2xl md:rounded-3xl overflow-hidden animate-slide-up-fade-in">
+            <div
+              className={cn(
+                "mt-2 backdrop-blur-sm shadow-lg border rounded-2xl md:rounded-3xl overflow-hidden animate-slide-up-fade-in",
+                mapDarkMode ? "bg-black/60 border-black" : "bg-white/60 border-gray"
+              )}
+            >
               {/* 검색 중 스피너 */}
               {isFetching && (
                 <div className="flex items-center justify-center py-4 px-2">

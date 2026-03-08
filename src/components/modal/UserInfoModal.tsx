@@ -3,6 +3,8 @@
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 import { useAuthStore } from "@/stores/authStore";
+import { useMapStyleStore } from "@/stores/mapStyleStore";
+import { cn } from "@/lib/utils";
 import type { User } from "@/db/schema";
 
 const GENDER_LABELS: Record<NonNullable<User["gender"]>, string> = {
@@ -25,35 +27,54 @@ interface UserInfoModalProps {
 
 export function UserInfoModal({ isOpen, onClose }: UserInfoModalProps) {
   const user = useAuthStore((s) => s.user);
+  const mapDarkMode = useMapStyleStore((s) => s.mapDarkMode);
+  const darkMode = mapDarkMode;
 
   const email = user?.email ?? "-";
   const name = user?.name ?? "-";
   const birthDate = formatBirthDate(user?.birthDate ?? null);
   const genderLabel = user?.gender ? GENDER_LABELS[user.gender] : "미입력";
 
+  const labelClass = darkMode ? "text-white/70" : "text-gray-500";
+  const valueClass = darkMode ? "text-white" : "text-gray-800";
+
+  const modalClassName = darkMode ? "bg-black/60 border-black" : "";
+
   return (
-    <Modal isOpen={isOpen} title="내 정보" onClose={onClose}>
+    <Modal isOpen={isOpen} title="" onClose={onClose} className={modalClassName}>
       <div className="flex flex-col gap-4">
+        <h2
+          className={cn(
+            "text-[20px] font-semibold leading-snug",
+            darkMode ? "text-white" : "text-gray-800"
+          )}
+        >
+          내 정보
+        </h2>
         <dl className="grid gap-3 text-left">
           <div>
-            <dt className="text-sm font-medium uppercase tracking-wider text-gray-500">
+            <dt className={cn("text-sm font-medium uppercase tracking-wider", labelClass)}>
               가입한 계정
             </dt>
-            <dd className="mt-0.5 text-md font-medium text-gray-800">{email}</dd>
+            <dd className={cn("mt-0.5 text-md font-medium", valueClass)}>{email}</dd>
           </div>
           <div>
-            <dt className="text-sm font-medium uppercase tracking-wider text-gray-500">
+            <dt className={cn("text-sm font-medium uppercase tracking-wider", labelClass)}>
               가입한 이름
             </dt>
-            <dd className="mt-0.5 text-md font-medium text-gray-800">{name}</dd>
+            <dd className={cn("mt-0.5 text-md font-medium", valueClass)}>{name}</dd>
           </div>
           <div>
-            <dt className="text-sm font-medium uppercase tracking-wider text-gray-500">생년월일</dt>
-            <dd className="mt-0.5 text-md font-medium text-gray-800">{birthDate}</dd>
+            <dt className={cn("text-sm font-medium uppercase tracking-wider", labelClass)}>
+              생년월일
+            </dt>
+            <dd className={cn("mt-0.5 text-md font-medium", valueClass)}>{birthDate}</dd>
           </div>
           <div>
-            <dt className="text-sm font-medium uppercase tracking-wider text-gray-500">성별</dt>
-            <dd className="mt-0.5 text-md font-medium text-gray-800">{genderLabel}</dd>
+            <dt className={cn("text-sm font-medium uppercase tracking-wider", labelClass)}>
+              성별
+            </dt>
+            <dd className={cn("mt-0.5 text-md font-medium", valueClass)}>{genderLabel}</dd>
           </div>
         </dl>
 
