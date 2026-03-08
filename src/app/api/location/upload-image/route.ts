@@ -2,7 +2,7 @@ import { type NextRequest } from "next/server";
 import { successResponse, errorResponse, ErrorCode } from "@/lib/api-response";
 import { verifyToken } from "@/lib/jwt";
 import {
-  supabaseAdmin,
+  getSupabaseAdmin,
   STORAGE_BUCKET_LOCATION_IMAGES,
   getStoragePublicUrl,
 } from "@/lib/supabase-server";
@@ -63,6 +63,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const supabaseAdmin = getSupabaseAdmin();
     const prefix = `${userUuid}/${Date.now()}`;
     const urls: string[] = [];
 
