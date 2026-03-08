@@ -93,7 +93,7 @@ export const FloatingSearchBar = React.memo<FloatingSearchBarProps>(
               mapDarkMode ? "bg-black/60 border-black" : "bg-white/60 border-gray"
             )}
           >
-            <div className="flex items-center gap-3 px-2 py-2 md:px-5 md:py-1">
+            <div className="flex items-center gap-3 px-[8px] py-2 md:py-1">
               <Input
                 type="text"
                 value={query}

@@ -6,6 +6,9 @@ import { ToastProvider } from "@/components/providers/ToastProvider";
 export const metadata: Metadata = {
   title: "PinMap",
   description: "PinMap Application",
+  icons: {
+    icon: "/icons/logo.png",
+  },
 };
 
 export const viewport: Viewport = {
