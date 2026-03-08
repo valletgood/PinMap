@@ -8,7 +8,15 @@ export const metadata: Metadata = {
   description: "PinMap Application",
   icons: {
     icon: "/icons/logo.png",
+    apple: "/icons/logo.png",
   },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "PinMap",
+  },
+  themeColor: "#6f62cb",
 };
 
 export const viewport: Viewport = {
@@ -17,6 +25,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
+  themeColor: "#6f62cb",
 };
 
 export default function RootLayout({
