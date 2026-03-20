@@ -48,6 +48,10 @@ interface MapViewProps {
    * savedLocationToOpen 처리 후 호출 (상위에서 state 클리어용)
    */
   onClearedSavedLocationToOpen?: () => void;
+  /**
+   * 내 위치로 이동 트리거 (값이 바뀔 때마다 현재 위치로 flyTo)
+   */
+  flyToMyLocationTrigger?: number;
 }
 
 export function MapView({
@@ -56,11 +60,14 @@ export function MapView({
   savedLocations = [],
   savedLocationToOpen = null,
   onClearedSavedLocationToOpen,
+  flyToMyLocationTrigger,
 }: MapViewProps) {
   const mapRef = useRef<maplibregl.Map | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const markersRef = useRef<maplibregl.Marker[]>([]);
   const savedMarkersRef = useRef<maplibregl.Marker[]>([]);
+  const userMarkerRef = useRef<maplibregl.Marker | null>(null);
+  const userLocationRef = useRef<{ lng: number; lat: number } | null>(null);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
   const setModalDetailRef = useRef<((detail: ModalDetail) => void) | null>(null);
   const [modalDetail, setModalDetail] = useState<ModalDetail>(null);
@@ -145,6 +152,8 @@ export function MapView({
       markersRef.current = [];
       savedMarkersRef.current.forEach((marker) => marker.remove());
       savedMarkersRef.current = [];
+      userMarkerRef.current?.remove();
+      userMarkerRef.current = null;
       mapRef.current?.remove();
       mapRef.current = null;
       isInitializedRef.current = false;
@@ -286,6 +295,59 @@ export function MapView({
       savedMarkersRef.current.push(marker);
     });
   }, [savedLocations, isMapReady]);
+
+  // 실시간 현재 위치 마커
+  useEffect(() => {
+    if (!isMapReady) return;
+
+    const createUserMarkerEl = () => {
+      const el = document.createElement("div");
+      el.style.width = "72px";
+      el.style.height = "72px";
+      el.style.backgroundImage = "url(/icons/ico_user.svg)";
+      el.style.backgroundSize = "contain";
+      el.style.backgroundRepeat = "no-repeat";
+      el.style.backgroundPosition = "center";
+      return el;
+    };
+
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        const lng = pos.coords.longitude;
+        const lat = pos.coords.latitude;
+        userLocationRef.current = { lng, lat };
+
+        if (!mapRef.current) return;
+        if (userMarkerRef.current) {
+          userMarkerRef.current.setLngLat([lng, lat]);
+        } else {
+          userMarkerRef.current = new maplibregl.Marker({ element: createUserMarkerEl(), anchor: "center" })
+            .setLngLat([lng, lat])
+            .addTo(mapRef.current);
+        }
+      },
+      (err) => console.warn("geolocation error", err),
+      { enableHighAccuracy: true }
+    );
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+      userMarkerRef.current?.remove();
+      userMarkerRef.current = null;
+      userLocationRef.current = null;
+    };
+  }, [isMapReady]);
+
+  // 내 위치로 이동 트리거
+  useEffect(() => {
+    if (!flyToMyLocationTrigger || !mapRef.current || !isInitializedRef.current) return;
+    const pos = userLocationRef.current;
+    if (!pos) return;
+    mapRef.current.flyTo(
+      createFlyToOptions([pos.lng, pos.lat], { duration: FLY_TO_DURATION_SLOW })
+    );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flyToMyLocationTrigger]);
 
   // 저장 목록 패널에서 장소 선택 시: 해당 좌표로 flyTo 후 saved 모달 오픈
   useEffect(() => {

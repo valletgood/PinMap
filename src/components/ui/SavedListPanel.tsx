@@ -96,7 +96,7 @@ export function SavedListPanel({
           }
         }}
         className={cn(
-          "fixed bottom-6 left-4 z-40 flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-all p-0 backdrop-blur-md",
+          "fixed bottom-20 left-4 z-40 flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-all p-0 backdrop-blur-md",
           mapDarkMode
             ? "bg-black/60 border-black hover:bg-black/70 active:bg-black/80"
             : "bg-white/60 border border-white/50 hover:bg-white/80 active:bg-white/90",
@@ -139,7 +139,7 @@ export function SavedListPanel({
       {isOpen && (
         <div
           className={cn(
-            "fixed bottom-20 left-4 right-4 z-30 max-h-[50vh] overflow-hidden rounded-2xl shadow-xl backdrop-blur-md md:left-4 md:right-auto md:min-w-[320px] md:max-w-[420px] border",
+            "fixed bottom-35 left-4 right-4 z-30 max-h-[50vh] overflow-hidden rounded-2xl shadow-xl backdrop-blur-md md:left-4 md:right-auto md:min-w-[320px] md:max-w-[420px] border",
             mapDarkMode ? "bg-black/60 border-black" : "border-white/40 bg-white/70"
           )}
           role="dialog"
